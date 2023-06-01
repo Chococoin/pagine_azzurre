@@ -194,6 +194,10 @@ export default function ProductEditScreen(props) {
     if (e === "offro" && !isService) setImage(["/images/offro_prodotto.jpg"]);
     if (e === "cerco" && isService) setImage(["/images/cerco_servizio.jpg"]);
     if (e === "cerco" && !isService) setImage(["/images/cerco_prodotto.jpg"]);
+
+    /* dono */
+    if (e === 'dono' && isService) setImage(['/images/avviso.jpg']);
+    if (e === 'dono' && !isService) setImage(['/images/avviso.jpg']);
   };
 
   const handleTitle = (e) => {
@@ -233,11 +237,11 @@ export default function ProductEditScreen(props) {
                 value={section.toString()}
                 onChange={(e) => helpSetDefaultImage(e.target.value)}
               >
-                <option value="dono">Dono</option>
                 <option value="offro">Offro</option>
                 <option value="cerco">Cerco</option>
                 <option value="propongo">Proposte di idee e progetti</option>
                 <option value="avviso">Avviso</option>
+                <option value="dono">Dono</option>
               </select>
             </div>
             {section !== "avviso" && section !== "propongo" && (
@@ -287,7 +291,8 @@ export default function ProductEditScreen(props) {
                 required
               ></input>
             </div>
-            {section !== "avviso" && section !== "propongo" && (
+            {/* dono */}
+            {section !== "avviso" && section !== "propongo" && section !== "dono" && (
               <>
                 <div>
                   <label htmlFor="priceVal">Prezzo in Val </label>
