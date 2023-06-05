@@ -198,6 +198,7 @@ export default function ProductEditScreen(props) {
     /* dono */
     if (e === 'dono' && isService) setImage(['/images/avviso.jpg']);
     if (e === 'dono' && !isService) setImage(['/images/avviso.jpg']);
+    if (e === 'dono') setPriceVal(0)
   };
 
   const handleTitle = (e) => {
@@ -292,6 +293,8 @@ export default function ProductEditScreen(props) {
               ></input>
             </div>
             {/* dono */}
+            {/* priceval in these cases should be 0*/}
+            {/* value={priceVal} */}
             {section !== "avviso" && section !== "propongo" && section !== "dono" && (
               <>
                 <div>
