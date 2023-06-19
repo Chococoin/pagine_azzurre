@@ -5,7 +5,8 @@ import { savePaymentMethod } from "../actions/cartActions";
 import { payVals } from "../actions/paymentActions";
 import CheckoutSteps from "../components/CheckoutSteps";
 import MessageBox from "../components/MessageBox";
-import { ReactComponent as DinastyIco } from "../resources/logos/cropped-cropped-Logo.svg";
+// Variable never used.
+//import { ReactComponent as DinastyIco } from "../resources/logos/cropped-cropped-Logo.svg";
 
 import Web3 from "web3";
 import SContract from "../web3Interface/abi.js";
@@ -19,8 +20,9 @@ const _contract = new web3.eth.Contract(SContract.abi, deployedNetwork.address);
 export default function PaymentMethodScreen(props) {
   const userSignin = useSelector((state) => state.userSignin);
   const { userInfo } = userSignin;
-  const userDetails = useSelector((state) => state.userDetails);
-  const { loading, error, user } = userDetails;
+  // variables never used.
+  //const userDetails = useSelector((state) => state.userDetails);
+  //const { loading, error, user } = userDetails;
   const cart = useSelector((state) => state.cart);
   const [phase, setPhase] = useState(1);
   const [balance, setBalance] = useState("");
