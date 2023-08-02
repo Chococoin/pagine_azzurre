@@ -155,7 +155,7 @@ export default function Header({ setSidebarIsOpen }) {
             valazco.it
           </a>
         }{" "}
-        per avere i VAL contributo di esistenza giornaliero da utilizzare subito
+        per avere i VAL contributo di emancipazione giornaliero da utilizzare subito
       </div> */}
     </>
   );
