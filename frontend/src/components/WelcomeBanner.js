@@ -36,6 +36,11 @@ export default function WelcomeBanner(props) {
           <img className="Logo5 logo" src={logo5} alt="Logo" />
         </div>
       </div>
+      <div className="row center welcome">Pagineazzurre è una attività promossa e gestita dal Banco dei Cittadini Volontari del Val.Az.Co.&nbsp;
+        <a href="http://valazco.org/scopri-pagine-azzurre.html" target="_blank" rel="noopener noreferrer">
+          http://valazco.org
+        </a>
+      </div>
     </div>
   );
 }
