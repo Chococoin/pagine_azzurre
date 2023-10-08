@@ -95,6 +95,7 @@ let msgRegistration = (recipient, username, isNewsletterRegistred) => {
         `
       }
     }
+    msg.bcc = "ilbancodeivolontari@libero.it"
     return msg 
   }
 
