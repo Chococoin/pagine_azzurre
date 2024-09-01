@@ -16,8 +16,11 @@ export default function WelcomeBanner(props) {
       </h1>
       <h2 className="row center welcome">
         Pagine Azzurre favorisce ogni scambio di prodotti, servizi e competenze
-        con moneta speculativa: Euro, USD, Cripto, ecc... Meglio se non
-        speculativa: VAL, Crediti, Din, ecc...
+        finalizzati alla emancipazione umana, per mezzo delle convenzioni monetarie:
+        EUR Euro. USD Dollaro Americano. RUR Rublo Russo. CAN Dollaro Canadese.
+        CNY Yuan Cinese.  INR  Rupia Indiana. BRL Real Brasiliano.
+        XDR Moneta Fondo Internazionale (IMF).
+        AUD Dollaro Australiano. CRIPTO. Ma preferiamo: VAL, Crediti, G1, RISO e ne richiediamo almeno l'utilizzo parziale.
       </h2>
       <div className="logos-container">
         <div>
