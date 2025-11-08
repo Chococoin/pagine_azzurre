@@ -272,7 +272,7 @@ Herramientas (si no tienes):
 ## 📦 Inventario de Archivos del Proyecto
 
 ```
-docs/barcode-terminal/
+barcode-terminal-project/
 ├── 00_PROJECT_STATUS.md         ← Este archivo
 ├── 01_ESPECIFICACION_TECNICA.md
 ├── 02_BOM_COSTOS.md
@@ -515,8 +515,8 @@ PROGRESO GLOBAL:              ██░░░░░░░░░░░░░░�
 ---
 
 **Última actualización:** 2025-11-08
-**Mantenedor:** Proyecto Terminal de Mensajería
-**Licencia:** Ver repositorio principal
+**Repositorio:** https://github.com/[tu-usuario]/barcode-terminal-project
+**Licencia:** MIT (o la que prefieras)
 
 ---
 

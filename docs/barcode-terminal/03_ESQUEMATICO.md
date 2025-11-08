@@ -1,6 +1,22 @@
 # Esquemático del Circuito - Terminal de Mensajería
 
-## Diagrama de Bloques del Sistema
+## ⚡ Dos Opciones de Hardware
+
+Este documento contiene esquemáticos para AMBAS opciones de microcontrolador:
+
+### Opción A: ESP32 DevKit V1 (Secciones 1-9)
+- Hardware tradicional con módulos externos
+- Mejor para prototipado en breadboard
+- Requiere TP4056 + AMS1117
+
+### Opción B: XIAO ESP32-S3 (Sección 10) ⭐
+- Hardware ultra-compacto
+- Cargador y regulador integrados
+- 76% más pequeño que DevKit
+
+---
+
+## Diagrama de Bloques del Sistema (ESP32 DevKit)
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -476,7 +492,391 @@ Dimensiones aproximadas: 80-100mm x 140-160mm
 
 ---
 
-## 10. ARCHIVOS DE DISEÑO
+## 10. ESQUEMÁTICO ALTERNATIVO: XIAO ESP32-S3 ⭐
+
+### Diagrama de Bloques Simplificado (XIAO)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│              TERMINAL COMPACTO (XIAO ESP32-S3)                  │
+└─────────────────────────────────────────────────────────────────┘
+
+         USB-C                    Batería LiPo 3.7V 1000mAh
+           │                              │
+           │                              │
+           ▼                              ▼
+    ┌──────────────────────────────────────────┐
+    │    XIAO ESP32-S3 (Integrado)             │
+    │                                          │
+    │  ┌────────────┐      ┌───────────────┐  │
+    │  │  Cargador  │◄─────┤   BMS         │  │
+    │  │  LiPo      │      │  Protección   │  │
+    │  └─────┬──────┘      └───────────────┘  │
+    │        │                                 │
+    │        │                                 │
+    │        ▼                                 │
+    │  ┌────────────┐                          │
+    │  │ Regulador  │                          │
+    │  │    3.3V    │                          │
+    │  └─────┬──────┘                          │
+    │        │                                 │
+    │        │         ┌─────────────┐         │
+    │        └────────►│   ESP32-S3  │         │
+    │                  │  240MHz     │         │
+    │                  │  8MB PSRAM  │         │
+    │                  │  BLE 5.0    │         │
+    │                  └──────┬──────┘         │
+    └─────────────────────────┼────────────────┘
+                              │
+        ┌─────────────────────┼─────────────────────┬──────────────┐
+        │                     │                     │              │
+        ▼                     ▼                     ▼              ▼
+   ┌─────────┐          ┌──────────┐         ┌─────────┐   ┌──────────┐
+   │  GM67   │          │  OLED    │         │ Buzzer  │   │ Vibrador │
+   │ Scanner │          │ SSD1306  │         │         │   │          │
+   └─────────┘          └──────────┘         └─────────┘   └──────────┘
+
+   ┌──────────┐
+   │ Botones  │
+   │  x2      │
+   └──────────┘
+
+        │ BLE
+        ▼
+   [Smartphone Android]
+```
+
+**Ventajas del diseño XIAO:**
+- ✅ Menos componentes externos (no TP4056, no AMS1117)
+- ✅ PCB más pequeño (~50% reducción)
+- ✅ Menos conexiones = menos puntos de fallo
+- ✅ Costo de producción menor
+- ✅ Tiempo de ensamblaje menor
+
+---
+
+### 10.1 Alimentación Simplificada (XIAO)
+
+```
+USB-C (en XIAO)
+    │
+    ├──► Cargador LiPo integrado
+    │           │
+    │      [Gestión de carga automática]
+    │           │
+    │           ▼
+    │    Batería LiPo 3.7V 1000mAh
+    │           │
+    │           ▼
+    └──► Regulador 3.3V integrado
+                │
+                ▼
+            VCC (3.3V)
+                │
+                ├──► XIAO ESP32-S3
+                ├──► OLED SSD1306
+                ├──► Buzzer
+                └──► LEDs
+
+    5V salida ──► GM67 Scanner
+```
+
+**Componentes eliminados vs ESP32 DevKit:**
+- ❌ Módulo TP4056 (cargador integrado)
+- ❌ Regulador AMS1117 (integrado)
+- ❌ Conector USB-C externo (integrado)
+- ❌ Protección BMS externa (integrada)
+- ❌ Resistencias y capacitores asociados
+
+---
+
+### 10.2 Conexiones del XIAO ESP32-S3
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    XIAO ESP32-S3 Pinout                          │
+│                     (Vista Superior)                             │
+│                                                                  │
+│   5V  ─────────────────► GM67 Scanner VCC                       │
+│   GND ─────────────────► Común (todos los GND)                  │
+│                                                                  │
+│   D0  (GPIO1)  ────────► OLED SDA  (I2C)                        │
+│   D1  (GPIO2)  ────────► OLED SCL  (I2C)                        │
+│                                                                  │
+│   D2  (GPIO3)  ────────► Scanner TX (UART1 RX)                  │
+│   D3  (GPIO4)  ────────► Scanner RX (UART1 TX)                  │
+│   D4  (GPIO5)  ────────► Scanner TRIG                           │
+│                                                                  │
+│   D5  (GPIO6)  ────────► Buzzer (PWM)                           │
+│                                                                  │
+│   D6  (GPIO43) ────────► BTN_SCAN                               │
+│   D7  (GPIO44) ────────► BTN_OK                                 │
+│                                                                  │
+│   D8  (GPIO8)  ────────► LED_R (via 330Ω)                       │
+│   D9  (GPIO9)  ────────► LED_G (via 330Ω)                       │
+│   D10 (GPIO10) ────────► LED_B (via 330Ω) + Vibrador (multiplex)│
+│                                                                  │
+│   A0  (ADC)    ────────► Batería (divisor interno)              │
+│                                                                  │
+│   3V3 ─────────────────► OLED VCC, Pull-ups                     │
+│   BAT ─────────────────► LiPo+ (directo)                        │
+│   GND ─────────────────► LiPo-                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 10.3 Circuito de Botones (XIAO)
+
+```
+XIAO GPIO43 ──┬──[Botón SCAN]──► GND
+              │
+         10kΩ (pull-up interno)
+              │
+             VCC
+
+XIAO GPIO44 ──┬──[Botón OK]──► GND
+              │
+         10kΩ (pull-up interno)
+              │
+             VCC
+```
+
+**Funcionalidad BTN_OK:**
+- Presión corta (<1s): Confirmar acción
+- Presión larga (>2s): Menú de información
+
+**Reducción de botones:**
+- ESP32 DevKit: 4 botones (SCAN, OK, CANCEL, MENU)
+- XIAO: 2 botones (SCAN, OK con funcionalidad múltiple)
+- Ahorro: 2 GPIO, simplificación de PCB
+
+---
+
+### 10.4 Scanner GM67 (Idéntico)
+
+```
+XIAO 5V ────────► GM67 VCC
+XIAO GND ───────► GM67 GND
+XIAO D2 (GPIO3) ► GM67 TX  (UART1 RX)
+XIAO D3 (GPIO4) ► GM67 RX  (UART1 TX)
+XIAO D4 (GPIO5) ► GM67 TRIG (opcional)
+```
+
+**Nota importante:**
+- XIAO usa UART1 (Serial1 en Arduino)
+- ESP32 DevKit usa UART2 (Serial2 en Arduino)
+- Cambiar en firmware
+
+---
+
+### 10.5 Display OLED (Conexión I2C)
+
+```
+XIAO D0 (GPIO1) ──► OLED SDA
+XIAO D1 (GPIO2) ──► OLED SCL
+XIAO 3V3 ────────► OLED VCC
+XIAO GND ────────► OLED GND
+
+Resistencias pull-up:
+SDA ──┬─── 4.7kΩ ──► 3.3V
+SCL ──┴─── 4.7kΩ ──► 3.3V
+
+(Pueden estar ya en módulo OLED)
+```
+
+---
+
+### 10.6 Buzzer y Vibrador (XIAO)
+
+```
+Buzzer:
+XIAO GPIO6 ──► [1kΩ] ──► Base 2N2222
+                          Collector ──► VCC
+                          Emitter ──► Buzzer+ ──► GND
+
+Vibrador (compartido con LED_B via software):
+XIAO GPIO10 ──► [1kΩ] ──► Base 2N2222
+                           Collector ──► VCC ──► Motor
+                           Emitter ──► GND
+                           + Diodo 1N4148 flyback
+```
+
+**Multiplexing LED_B y Vibrador:**
+- No se usan simultáneamente
+- LED_B: uso continuo, PWM
+- Vibrador: pulsos cortos (100-200ms)
+- Prioridad: vibrador cuando activo
+
+---
+
+### 10.7 LEDs Indicadores (XIAO)
+
+```
+XIAO GPIO8  ──► [330Ω] ──► LED_R ──► GND
+XIAO GPIO9  ──► [330Ω] ──► LED_G ──► GND
+XIAO GPIO10 ──► [330Ω] ──► LED_B ──► GND (shared)
+
+O usar un LED RGB común cátodo:
+
+XIAO GPIO8  ──► [330Ω] ──► R ─┐
+XIAO GPIO9  ──► [330Ω] ──► G ─┤ LED RGB
+XIAO GPIO10 ──► [330Ω] ──► B ─┤
+                               └──► GND (común)
+```
+
+---
+
+### 10.8 Medición de Batería (XIAO)
+
+```
+XIAO tiene divisor de voltaje 1:2 interno:
+
+VBAT (BAT pin) ──┬──► Divisor 100kΩ ──┬──► GPIO1 (A0)
+                 │                    │
+                100kΩ                100kΩ
+                 │                    │
+                GND                  GND
+
+ADC lee: VBAT / 2
+
+Software:
+VBAT = ADC_reading * 2
+```
+
+**Calibración:**
+```cpp
+// Leer ADC (12-bit, 0-4095)
+int adcValue = analogRead(A0);
+
+// Convertir a voltaje
+float vbat = (adcValue / 4095.0) * 3.3 * 2.0;
+
+// Calcular porcentaje
+int percent = map(vbat * 100, 300, 420, 0, 100);
+percent = constrain(percent, 0, 100);
+```
+
+---
+
+### 10.9 Tabla Comparativa de Componentes
+
+| Componente | ESP32 DevKit | XIAO ESP32-S3 |
+|------------|--------------|---------------|
+| **Microcontrolador** | ESP32-WROOM-32E módulo | Integrado en XIAO |
+| **Cargador LiPo** | TP4056 externo | Integrado |
+| **Regulador 3.3V** | AMS1117 externo | Integrado |
+| **USB** | Conector externo | USB-C integrado |
+| **Protección BMS** | Módulo externo | Integrado |
+| **Botones** | 4 (SCAN, OK, CANCEL, MENU) | 2 (SCAN, OK multi) |
+| **LEDs extra** | LED_BATTERY separado | No (usa LED_RGB) |
+| **UART Scanner** | UART2 (GPIO16/17) | UART1 (GPIO3/4) |
+| **Total componentes** | ~25 | ~15 |
+| **Conexiones soldadura** | ~60 | ~30 |
+
+---
+
+### 10.10 Layout PCB Recomendado (XIAO)
+
+```
+┌────────────────────────────────────┐ ← 80mm
+│                                    │
+│  ┌────────┐        [OLED]          │
+│  │ XIAO   │        1.3"            │
+│  │ESP32-S3│                        │
+│  └────────┘                        │
+│                                    │
+│  ┌──────────────────────────────┐  │
+│  │     GM67 Scanner Module      │  │
+│  └──────────────────────────────┘  │
+│                                    │
+│  [BAT]   [BTN]  [BTN]              │
+│  LiPo    SCAN    OK                │
+│  1000mAh                           │
+└────────────────────────────────────┘
+         ↑
+        65mm
+
+Área total: 80x65mm = 5,200 mm²
+vs DevKit: 100x80mm = 8,000 mm²
+Reducción: 35% menos área
+```
+
+**Consideraciones de layout:**
+- XIAO en centro para distribuir conexiones
+- Scanner en parte superior (ventana en carcasa)
+- OLED cerca del XIAO (I2C corto)
+- Batería en parte inferior (centro de gravedad)
+- Botones accesibles en borde
+
+---
+
+### 10.11 Costos de Componentes (XIAO vs DevKit)
+
+#### ESP32 DevKit BOM:
+```
+ESP32-WROOM-32E:     €3.50
+TP4056 + BMS:        €1.50
+AMS1117-3.3:         €0.30
+USB-C connector:     €0.80
+Varios (caps, res):  €1.00
+───────────────────────────
+TOTAL:               €7.10
+```
+
+#### XIAO ESP32-S3 BOM:
+```
+XIAO ESP32-S3:       €8.00
+(todo integrado)
+───────────────────────────
+TOTAL:               €8.00
+```
+
+**Ahorro neto:** €0.90 más caro el XIAO PERO:
+- Ahorro en PCB (más pequeño): -€1.00
+- Ahorro en ensamblaje (menos componentes): -€2.00
+- **Total ahorro real: -€2.10 por unidad**
+
+---
+
+### 10.12 Ventajas Técnicas del XIAO
+
+**Hardware:**
+- ✅ 8MB PSRAM (vs 0 en ESP32 estándar) → perfecto para MicroPython
+- ✅ USB-C nativo (vs Micro-USB)
+- ✅ Cargador más eficiente (90% vs 85% del TP4056)
+- ✅ Menor consumo en idle (72mA vs 85mA)
+
+**Desarrollo:**
+- ✅ Menos cableado = menos debugging
+- ✅ Firmware más simple (menos gestión de power)
+- ✅ Testing más rápido (USB-C más confiable)
+
+**Producción:**
+- ✅ 50% menos puntos de soldadura
+- ✅ PCB más pequeño = más unidades por panel
+- ✅ Menor costo de envío (más ligero)
+
+---
+
+### 10.13 Consideraciones de Diseño (XIAO)
+
+**Limitaciones:**
+- ⚠️ Solo 11 GPIO (vs 30 del DevKit)
+  - **Mitigado:** Proyecto usa exactamente 11
+- ⚠️ Difícil prototipado en breadboard
+  - **Solución:** Adaptador o soldar headers
+- ⚠️ Batería más pequeña (1000mAh vs 3000mAh)
+  - **Mitigado:** Menor consumo = autonomía similar
+
+**Soluciones:**
+- Usar breakout board para prototipado
+- Batería 1000mAh suficiente para 3-4 horas uso intensivo
+- Headers SMD soldados en fábrica
+
+---
+
+## 11. ARCHIVOS DE DISEÑO
 
 Para implementar este esquemático en KiCad:
 

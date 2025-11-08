@@ -12,14 +12,50 @@
 
 ---
 
+## 🔧 OPCIONES DE MICROCONTROLADOR
+
+Este proyecto soporta dos opciones de microcontrolador. Elige según tus prioridades:
+
+### Opción A: ESP32 DevKit V1 (Original)
+
+**Mejor para:** Máxima documentación, prototipado rápido en breadboard, precio bajo
+- **Tamaño:** 55x28mm (grande)
+- **Peso:** 10g
+- **Precio:** €6-8
+- **Pines:** 30 GPIOs disponibles
+- **Prototipado:** Muy fácil (breadboard friendly)
+
+### Opción B: Seeed XIAO ESP32-S3 ⭐ RECOMENDADO
+
+**Mejor para:** Dispositivo compacto, Python opcional, producto final portátil
+- **Tamaño:** 21x17.5mm (76% más pequeño)
+- **Peso:** 2.5g (75% más ligero)
+- **Precio:** €7-9
+- **Pines:** 11 GPIOs (suficientes para el proyecto)
+- **Ventajas:** Cargador LiPo integrado, USB-C, más PSRAM
+- **Python:** MicroPython soportado oficialmente
+
+**Recomendación:** Usa **ESP32 DevKit** para prototipar, luego cambia a **XIAO ESP32-S3** para el producto final.
+
+---
+
 ## 1. COMPONENTES ELECTRÓNICOS (por unidad)
 
 ### 1.1 Microcontrolador y Comunicación
 
+#### Opción A: ESP32 DevKit V1
 | Componente | Descripción | Cantidad | Precio Unit. | Precio Total | Proveedor |
 |------------|-------------|----------|--------------|--------------|-----------|
-| ESP32-WROOM-32E | Módulo WiFi+BLE | 1 | €3.50 | €3.50 | AliExpress/Mouser |
-| Antena PCB | 2.4GHz | 1 | €0.50 | €0.50 | Incluida en módulo |
+| ESP32 DevKit V1 | Módulo WiFi+BLE, 30 pines | 1 | €6-8 | €7.00 | AliExpress/Amazon |
+| Cable Micro-USB | Para programación | 1 | €1-2 | €1.00 | Incluido |
+
+#### Opción B: Seeed XIAO ESP32-S3 ⭐
+| Componente | Descripción | Cantidad | Precio Unit. | Precio Total | Proveedor |
+|------------|-------------|----------|--------------|--------------|-----------|
+| Seeed XIAO ESP32-S3 | Ultra-compacto, 8MB PSRAM | 1 | €7-9 | €8.00 | AliExpress/Seeed |
+| Cable USB-C | Para programación | 1 | €1-2 | €1.00 | Incluido |
+
+**Nota:** Con XIAO no necesitas módulos TP4056 ni AMS1117 (cargador integrado)
 
 ### 1.2 Scanner de Códigos
 
@@ -288,11 +324,78 @@ COSTO POR UNIDAD:                 €152-270
 
 ---
 
-## 10. RECOMENDACIÓN INICIAL
+## 10. COMPARATIVA DE COSTOS: ESP32 DevKit vs XIAO ESP32-S3
 
-Para empezar sin riesgo, recomiendo:
+### Costos por Unidad (Componentes Electrónicos)
 
-**FASE 0: Kit de Evaluación (€120-180)**
+| Componente | ESP32 DevKit | XIAO ESP32-S3 | Diferencia |
+|------------|--------------|---------------|------------|
+| Microcontrolador | €7.00 | €8.00 | +€1.00 |
+| Cargador LiPo (TP4056) | €1.50 | **incluido** | -€1.50 |
+| Regulador (AMS1117) | €0.30 | **incluido** | -€0.30 |
+| Scanner GM67 | €20.00 | €20.00 | - |
+| OLED 1.3" | €4.50 | €4.50 | - |
+| Batería LiPo | €6.00 | €5.00* | -€1.00 |
+| Otros componentes | €15.00 | €13.00 | -€2.00 |
+| **TOTAL** | **€54.30** | **€50.50** | **-€3.80** |
+
+*Batería más pequeña (1000mAh vs 3000mAh) suficiente por menor consumo
+
+### Tamaño y Peso del Terminal Final
+
+| Característica | ESP32 DevKit | XIAO ESP32-S3 | Mejora |
+|----------------|--------------|---------------|--------|
+| Dimensiones PCB | 100x80mm | 80x65mm | -35% área |
+| Grosor | 35mm | 28mm | -20% |
+| Peso total | ~180g | ~145g | -19% |
+| Volumen | 280 cm³ | 145 cm³ | -48% |
+
+### Costos de Producción (100 unidades)
+
+| Concepto | ESP32 DevKit | XIAO ESP32-S3 | Diferencia |
+|----------|--------------|---------------|------------|
+| Componentes (100u) | €5,430 | €5,050 | -€380 |
+| PCB más pequeño | €280 | €220 | -€60 |
+| Carcasa más pequeña | €1,200 | €900 | -€300 |
+| Ensamblaje | €1,800 | €1,500 | -€300 |
+| **TOTAL** | **€8,710** | **€7,670** | **-€1,040** |
+| **Por unidad** | **€87.10** | **€76.70** | **-€10.40** |
+
+### Ventajas Adicionales del XIAO ESP32-S3
+
+**Técnicas:**
+- ✅ USB-C moderno (vs Micro-USB)
+- ✅ 8MB PSRAM (vs 0MB) - mejor para Python
+- ✅ Cargador integrado (reduce componentes)
+- ✅ Menor consumo → batería más pequeña
+
+**De Producto:**
+- ✅ 48% menos volumen → más portátil
+- ✅ 19% menos peso → menos fatiga
+- ✅ Aspecto más profesional
+- ✅ Menores costos de envío
+
+**De Desarrollo:**
+- ✅ Mismo performance (240MHz dual-core)
+- ✅ MicroPython soportado oficialmente
+- ✅ Menos cableado (cargador integrado)
+
+### Desventajas del XIAO ESP32-S3
+
+- ⚠️ Menos pines disponibles (11 vs 30)
+  - **Solución:** Proyecto usa solo 11 pines
+- ⚠️ Soldadura SMD más compleja
+  - **Solución:** Usar módulo pre-ensamblado
+- ⚠️ Menos documentación que ESP32 estándar
+  - **Solución:** Wiki oficial Seeed bien documentada
+
+---
+
+## 11. RECOMENDACIÓN INICIAL
+
+### Para Prototipado Rápido (Fase 0-1)
+
+**OPCIÓN A: Kit de Evaluación ESP32 DevKit (€120-150)**
 - ESP32 DevKit (€8)
 - Scanner GM67 (€20)
 - OLED 1.3" (€5)
@@ -300,12 +403,52 @@ Para empezar sin riesgo, recomiendo:
 - Buzzer + vibrador (€2)
 - Breadboard y cables (€15)
 - Botones y componentes (€10)
-- Carcasa temporal (cartón/3D simple) (€10)
+- Carcasa temporal (€10)
 
-Esto te permite:
-- Validar funcionalidad completa
-- Desarrollar firmware
-- Probar ergonomía
-- Decidir si seguir con PCB custom
+**Ventajas:** Prototipado muy rápido, máxima documentación, breadboard friendly
 
-**Siguiente paso**: Si el prototipo funciona bien, pasar a Fase 2 (5 PCBs) por ~€400-500.
+---
+
+**OPCIÓN B: Kit de Evaluación XIAO ESP32-S3 (€110-140)** ⭐
+- XIAO ESP32-S3 (€8)
+- Scanner GM67 (€20)
+- OLED 1.3" (€5)
+- Batería LiPo 1000mAh (€5) - carga integrada
+- Buzzer + vibrador (€2)
+- Breadboard + adaptador (€18)
+- Botones y componentes (€10)
+- Carcasa temporal (€10)
+
+**Ventajas:** Terminal final más compacto, Python opcional, menores costos finales
+
+---
+
+### Estrategia Recomendada: Híbrida
+
+**Fase 0-1: Prototipo (Semanas 1-4)**
+```
+Usar ESP32 DevKit
+→ Prototipado rápido en breadboard
+→ Validar funcionalidad completa
+→ Desarrollar firmware base
+Costo: €120-150
+```
+
+**Fase 2: PCB v1 (Semanas 5-10)**
+```
+Migrar a XIAO ESP32-S3
+→ Diseño PCB compacto
+→ Adaptar firmware (cambio pines)
+→ 5 prototipos PCB
+Costo: €400-500
+```
+
+**Fase 3+: Producción**
+```
+Continuar con XIAO ESP32-S3
+→ Optimización final
+→ Producción 10-100 unidades
+→ Ahorro €10.40/unidad
+```
+
+**Siguiente paso**: Si el prototipo funciona bien, pasar a Fase 2 con XIAO para máxima compacidad.
