@@ -34,6 +34,9 @@ export interface User {
   phone?: string;
   password: string;
   recoveryPasswordId?: string;
+  /** One-shot token used for auto-login right after email verification.
+   *  Cleared atomically when consumed by the verification-autologin auth provider. */
+  loginToken?: string;
   referer?: string[];
   isAdmin: boolean;
   isSeller: boolean;
@@ -78,6 +81,7 @@ const userSchema = new Schema<UserDocument>(
     phone: { type: String, required: false, unique: true, sparse: true },
     password: { type: String, required: true },
     recoveryPasswordId: { type: String, required: false, default: '' },
+    loginToken: { type: String, required: false, default: null, select: false },
     referer: { type: [String], required: false },
     isAdmin: { type: Boolean, default: false, required: true },
     isSeller: { type: Boolean, default: true, required: true },
@@ -108,6 +112,7 @@ userSchema.methods.toJSON = function () {
   delete user.accountKey;
   delete user.password;
   delete user.recoveryPasswordId;
+  delete user.loginToken;
   return user;
 };
 

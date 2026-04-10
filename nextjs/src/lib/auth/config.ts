@@ -7,6 +7,7 @@ import UserModel from '@/lib/db/models/User';
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
+      id: 'credentials',
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
@@ -33,6 +34,49 @@ export const authOptions: NextAuthOptions = {
 
         if (!user.verify.verified) {
           throw new Error('Account non verificato. Controlla la tua email.');
+        }
+
+        return {
+          id: user._id.toString(),
+          email: user.email,
+          name: user.username,
+          isAdmin: user.isAdmin,
+          isSeller: user.isSeller,
+          hasAd: user.hasAd,
+          account: user.account,
+          sellerName: user.seller.name,
+        };
+      },
+    }),
+    CredentialsProvider({
+      // Used right after a successful email verification: the verification
+      // API generates a one-shot loginToken on the user document and the
+      // client exchanges it here for a real NextAuth session. The token is
+      // cleared atomically so it cannot be reused.
+      id: 'verification-autologin',
+      name: 'Verification Auto Login',
+      credentials: {
+        token: { label: 'Token', type: 'text' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.token) {
+          throw new Error('Token di verifica mancante');
+        }
+
+        await connectDB();
+
+        const user = await UserModel.findOneAndUpdate(
+          { loginToken: credentials.token },
+          { $unset: { loginToken: '' } },
+          { new: false }
+        ).select('+loginToken');
+
+        if (!user) {
+          throw new Error('Token di verifica non valido o già utilizzato');
+        }
+
+        if (!user.verify?.verified) {
+          throw new Error('Account non verificato');
         }
 
         return {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import styled from 'styled-components';
 import { useUserStore } from '@/lib/store/user';
 import LoadingBox from '@/components/ui/LoadingBox';
@@ -100,7 +101,7 @@ export default function VerificationLinkPage() {
           setUserName(data.user?.username || '');
           setMessage('Il tuo account è stato verificato con successo!');
 
-          // Store user info for auto-login
+          // Mirror to legacy Zustand store for components still reading it
           if (data.user) {
             setUserInfo({
               _id: data.user._id,
@@ -115,10 +116,28 @@ export default function VerificationLinkPage() {
             });
           }
 
+          // Exchange the one-shot loginToken for a real NextAuth session.
+          // The verification-autologin provider clears the token atomically
+          // so the link cannot be reused for a second auto-login.
+          if (data.loginToken) {
+            try {
+              const result = await signIn('verification-autologin', {
+                token: data.loginToken,
+                redirect: false,
+              });
+              if (result?.error) {
+                console.error('Auto-login failed:', result.error);
+              }
+            } catch (e) {
+              console.error('Auto-login threw:', e);
+            }
+          }
+
           // Redirect to home after 3 seconds
           setTimeout(() => {
             if (!isCancelled) {
               router.push('/');
+              router.refresh();
             }
           }, 3000);
         } else {

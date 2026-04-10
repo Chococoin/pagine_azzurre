@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { v4 as uuidv4 } from 'uuid';
 import connectDB from '@/lib/db/mongoose';
 import UserModel from '@/lib/db/models/User';
 import NewsletterModel from '@/lib/db/models/Newsletter';
@@ -35,6 +36,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     await connectDB();
 
+    // Generate a one-shot login token that the client will exchange for
+    // a real NextAuth session right after a successful verification.
+    const loginToken = uuidv4();
+
     // Use atomic findOneAndUpdate to prevent race conditions
     // Only update if verified is false, preventing duplicate verifications
     const user = await UserModel.findOneAndUpdate(
@@ -43,7 +48,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         'verify.verified': false, // Only match if not already verified
       },
       {
-        $set: { 'verify.verified': true },
+        $set: {
+          'verify.verified': true,
+          loginToken,
+        },
       },
       {
         new: true, // Return the updated document
@@ -106,6 +114,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     return NextResponse.json({
       uuid: verificationId,
+      // One-shot token used by the client to call signIn('verification-autologin').
+      // It is *not* part of user.toJSON() (toJSON strips loginToken).
+      loginToken,
       user: user.toJSON(),
       tokensMinted: mintResult.success,
       mintTxHash: mintResult.txHash,
