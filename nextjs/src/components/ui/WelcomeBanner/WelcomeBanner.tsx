@@ -28,7 +28,7 @@ const logos = [
   { src: '/logos/bannerarancione.jpg', alt: 'Banner Arancione' },
   { src: '/logos/valazco-logo.png', alt: 'Valazco Logo' },
   { src: '/logos/bannerblu.jpg', alt: 'Banner Blu' },
-  { src: '/logos/bannergiallo.jpg', alt: 'Banner Giallo' },
+  { src: '/images/coseinUtili.jpeg', alt: 'Cose(in)utili — cambia l\'inutile in utile', href: 'https://coseinutili.online' },
 ];
 
 export function WelcomeBanner() {
@@ -44,20 +44,26 @@ export function WelcomeBanner() {
             Benvenuti in <BrandName>Pagine Azzurre</BrandName>
           </MainTitle>
           <Subtitle>
-            Piazza dove barattiamo e scambiamo con meno Euro e piu <span style={{ fontSize: '1.5rem' }}>☯</span> VAL
+            piazza diffusa dove
+            barattiamo e scambiamo con più <span style={{ fontSize: '1.25em' }}>☯</span> VAL e meno Euro.
           </Subtitle>
         </TitleSection>
 
         {/* Mission Statement */}
         <MissionSection>
           <MissionText>
-            Pagine Azzurre favorisce ogni scambio di prodotti, servizi e competenze
-            finalizzati alla emancipazione umana, per mezzo delle convenzioni monetarie:
-            <CurrencyList> EUR, USD, RUR, CAN, CNY, INR, BRL, XDR, AUD, CRIPTO</CurrencyList>.
-            <br />
+            Per l&apos;emancipazione della dimensione umana favoriamo lo scambio di
+            valori umani con le convenzioni:{' '}
             <PreferredCurrencies>
-              Ma preferiamo: VAL, Crediti, G1, RISO
-            </PreferredCurrencies> e ne richiediamo almeno l&apos;utilizzo parziale.
+              VAL, Co-In, G1, RISO, SCEC, Din, ecc…
+            </PreferredCurrencies>
+            <br />
+            <em>
+              ((? Avete un vostro sistema di scambio? Proponetelo))
+            </em>
+            <br />
+            Si accettano complementariamente le convenzioni monetarie:{' '}
+            <CurrencyList>Euro, USD, FS, cripto, ecc…</CurrencyList>
           </MissionText>
         </MissionSection>
 

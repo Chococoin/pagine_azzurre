@@ -159,7 +159,12 @@ export default function ProductListPage() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const data = await getProducts({ pageNumber: page });
+      // Sellers see only their own products; admins see everything.
+      const filters: { pageNumber: number; seller?: string } = { pageNumber: page };
+      if (!userInfo?.isAdmin && userInfo?._id) {
+        filters.seller = userInfo._id;
+      }
+      const data = await getProducts(filters);
       setProducts(data.products);
       setPages(data.pages);
     } catch {
@@ -196,7 +201,9 @@ export default function ProductListPage() {
   return (
     <Container style={{ padding: '2rem 1rem' }}>
       <FlexBetween style={{ marginBottom: '2rem' }}>
-        <PageTitle style={{ marginBottom: 0 }}>Gestione Prodotti</PageTitle>
+        <PageTitle style={{ marginBottom: 0 }}>
+          {userInfo.isAdmin ? 'Gestione Prodotti' : 'I miei annunci'}
+        </PageTitle>
         <PrimaryButton
           onClick={handleCreate}
           disabled={actionLoading}

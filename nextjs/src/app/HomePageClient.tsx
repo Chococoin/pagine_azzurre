@@ -56,12 +56,12 @@ export default function HomePageClient() {
     fetchProducts();
   }, [page, section]);
 
-  const sectionButtons: { value: Section; label: string }[] = [
-    { value: 'offro', label: 'Offerte' },
-    { value: 'cerco', label: 'Richieste' },
-    { value: 'propongo', label: 'Proposte' },
-    { value: 'avviso', label: 'Avvisi' },
-    { value: 'dono', label: 'Dono/Tempo' },
+  const sectionButtons: { value: Section; lines: [string, string] }[] = [
+    { value: 'offro', lines: ['Vendo', 'Offro'] },
+    { value: 'cerco', lines: ['Cerco', 'Mi serve'] },
+    { value: 'propongo', lines: ['Proposte', 'Partnership'] },
+    { value: 'avviso', lines: ['Avvisi', 'Eventi'] },
+    { value: 'dono', lines: ['Dono', 'Tempo'] },
   ];
 
   return (
@@ -75,7 +75,7 @@ export default function HomePageClient() {
       <ContentContainer>
         {/* Section Title */}
         <TextCenter>
-          <PageTitle>Ultime Attività</PageTitle>
+          <PageTitle>Esposizione nuove attività</PageTitle>
           <PageSubtitle>
             Esplora le nostre sezioni di prodotti e servizi
           </PageSubtitle>
@@ -88,8 +88,16 @@ export default function HomePageClient() {
               key={btn.value}
               onClick={() => { setSection(btn.value); setPage(1); }}
               $isActive={section === btn.value}
+              style={{
+                display: 'inline-flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                lineHeight: 1.15,
+                padding: '0.625rem 1.25rem',
+              }}
             >
-              {btn.label}
+              <span>{btn.lines[0]}</span>
+              <span>{btn.lines[1]}</span>
             </FilterButton>
           ))}
         </FlexWrap>
