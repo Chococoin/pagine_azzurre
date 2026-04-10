@@ -1,150 +1,145 @@
-'use client';
-
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import styled from 'styled-components';
-import { getUserProfile } from '@/lib/api/users';
-import { getProducts } from '@/lib/api/products';
-import LoadingBox from '@/components/ui/LoadingBox';
-import MessageBox from '@/components/ui/MessageBox';
-import Product from '@/components/ui/Product';
-import Rating from '@/components/ui/Rating';
+import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
+import { getSellerForSeo } from '@/lib/seo/queries';
 import {
-  Container,
-  SectionTitle,
-  CardBase,
-  GridContainer,
-  LoadingContainer,
-  ErrorContainer,
-  EmptyContainer
-} from '@/lib/styles';
-import type { User, Product as ProductType } from '@/types';
+  SITE_NAME,
+  SITE_URL,
+  DEFAULT_OG_IMAGE,
+  canonicalUrl,
+  truncate,
+} from '@/lib/seo/config';
+import SellerDetailClient from './SellerDetailClient';
 
-// Styled Components
-const SellerCard = styled(CardBase)`
-  padding: 2rem;
-  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-  margin-bottom: 2rem;
-`;
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
 
-const SellerInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { id } = await params;
+  const seller = await getSellerForSeo(id);
 
-  @media (min-width: 768px) {
-    flex-direction: row;
-    align-items: flex-start;
+  if (!seller) {
+    return {
+      title: 'Venditore non trovato',
+      description: 'Il venditore richiesto non è disponibile su Pagine Azzurre.',
+      robots: { index: false, follow: false },
+    };
   }
-`;
 
-const SellerLogo = styled.img`
-  width: 8rem;
-  height: 8rem;
-  border-radius: 0.75rem;
-  object-fit: cover;
-`;
+  const title = `${seller.sellerName} — Venditore su ${SITE_NAME}`;
+  const description = truncate(
+    seller.description ||
+      `Scopri gli annunci di ${seller.sellerName} su Pagine Azzurre${
+        seller.city ? `, ${seller.city}` : ''
+      }. Prodotti, servizi e competenze con baratto, VAL ed Euro.`
+  );
 
-const SellerDetails = styled.div`
-  flex: 1;
-`;
+  const canonical = canonicalUrl(`/seller/${seller._id}`);
+  const imageUrl = seller.logo || DEFAULT_OG_IMAGE;
 
-const SellerName = styled.h1`
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: #111827;
-  margin-bottom: 0.5rem;
-`;
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      type: 'profile',
+      url: canonical,
+      title,
+      description,
+      siteName: SITE_NAME,
+      locale: 'it_IT',
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: seller.sellerName,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [imageUrl],
+    },
+  };
+}
 
-const SellerDescription = styled.p`
-  color: #6b7280;
-  margin-top: 1rem;
-`;
+export default async function SellerPage({ params }: PageProps) {
+  const { id } = await params;
+  const seller = await getSellerForSeo(id);
 
-const ProductsGrid = styled(GridContainer)`
-  @media (min-width: 1280px) {
-    grid-template-columns: repeat(4, 1fr);
+  if (!seller) {
+    notFound();
   }
-`;
 
-export default function SellerPage() {
-  const params = useParams();
-  const sellerId = params.id as string;
-
-  const [seller, setSeller] = useState<User | null>(null);
-  const [products, setProducts] = useState<ProductType[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    fetchSellerData();
-  }, [sellerId]);
-
-  const fetchSellerData = async () => {
-    try {
-      setLoading(true);
-      const [sellerData, productsData] = await Promise.all([
-        getUserProfile(sellerId),
-        getProducts({ pageSize: 100 }),
-      ]);
-      setSeller(sellerData);
-      // Filter products by seller
-      const sellerProducts = productsData.products.filter(
-        (p) => p.seller._id === sellerId
-      );
-      setProducts(sellerProducts);
-    } catch {
-      setError('Errore nel caricamento del venditore');
-    } finally {
-      setLoading(false);
-    }
+  // JSON-LD Store + BreadcrumbList
+  const storeJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Store',
+    '@id': canonicalUrl(`/seller/${seller._id}`),
+    name: seller.sellerName,
+    description: seller.description || `Venditore su ${SITE_NAME}`,
+    url: canonicalUrl(`/seller/${seller._id}`),
+    image: seller.logo || DEFAULT_OG_IMAGE,
+    address: seller.city
+      ? {
+          '@type': 'PostalAddress',
+          addressLocality: seller.city,
+          addressCountry: seller.country || 'IT',
+        }
+      : undefined,
+    aggregateRating:
+      seller.numReviews > 0
+        ? {
+            '@type': 'AggregateRating',
+            ratingValue: seller.rating.toFixed(1),
+            reviewCount: seller.numReviews,
+            bestRating: 5,
+            worstRating: 1,
+          }
+        : undefined,
   };
 
-  if (loading) return <LoadingContainer><LoadingBox /></LoadingContainer>;
-  if (error) return <ErrorContainer><MessageBox variant="danger">{error}</MessageBox></ErrorContainer>;
-  if (!seller) return <ErrorContainer><MessageBox variant="danger">Venditore non trovato</MessageBox></ErrorContainer>;
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Home',
+        item: SITE_URL,
+      },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Top Sellers',
+        item: `${SITE_URL}/top-sellers`,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: seller.sellerName,
+        item: canonicalUrl(`/seller/${seller._id}`),
+      },
+    ],
+  };
 
   return (
-    <Container style={{ padding: '2rem 1rem' }}>
-      {/* Seller Info */}
-      <SellerCard>
-        <SellerInfo>
-          {seller.seller?.logo && (
-            <SellerLogo
-              src={seller.seller.logo}
-              alt={seller.seller.name}
-            />
-          )}
-          <SellerDetails>
-            <SellerName>
-              {seller.seller?.name || seller.username}
-            </SellerName>
-            {seller.seller && (
-              <div style={{ marginBottom: '1rem' }}>
-                <Rating rating={seller.seller.rating} numReviews={seller.seller.numReviews} />
-              </div>
-            )}
-            {seller.seller?.description && (
-              <SellerDescription>{seller.seller.description}</SellerDescription>
-            )}
-          </SellerDetails>
-        </SellerInfo>
-      </SellerCard>
-
-      {/* Seller Products */}
-      <SectionTitle>Prodotti del Venditore</SectionTitle>
-
-      {products.length === 0 ? (
-        <EmptyContainer>
-          <MessageBox variant="info">Questo venditore non ha ancora prodotti</MessageBox>
-        </EmptyContainer>
-      ) : (
-        <ProductsGrid>
-          {products.map((product) => (
-            <Product key={product._id} product={product} />
-          ))}
-        </ProductsGrid>
-      )}
-    </Container>
+    <>
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      <SellerDetailClient sellerId={id} />
+    </>
   );
 }
