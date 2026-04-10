@@ -2,6 +2,7 @@
 
 import styled from 'styled-components';
 import Link from 'next/link';
+import { theme } from '@/lib/styles';
 
 export const ProductCard = styled.div`
   width: 100%;
@@ -139,7 +140,13 @@ export const ValPriceContainer = styled.div`
 `;
 
 export const ValSymbol = styled.span`
-  font-size: 1rem;
+  font-family: 'Arial Narrow', 'Helvetica Neue Condensed', 'Liberation Sans Narrow', 'Roboto Condensed', sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-stretch: condensed;
+  letter-spacing: -0.02em;
+  color: ${theme.colors.primary};
+  text-transform: uppercase;
 `;
 
 export const ValAmount = styled.span`

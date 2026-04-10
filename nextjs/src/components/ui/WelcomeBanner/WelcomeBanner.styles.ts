@@ -41,13 +41,13 @@ export const DecorativeCircle = styled.div<{ $position: 'top' | 'bottom' }>`
 
 export const ContentWrapper = styled.div`
   position: relative;
-  padding: 2.5rem 1.5rem;
+  padding: 5px 1.5rem 0.5rem;
   display: flex;
   flex-direction: column;
   gap: ${theme.spacing.xl};
 
   @media (min-width: 768px) {
-    padding: 3.5rem 3rem;
+    padding: 5px 3rem 0.7rem;
   }
 `;
 
@@ -89,7 +89,9 @@ export const Subtitle = styled.p`
 
 export const MissionSection = styled.div`
   max-width: 56rem;
-  margin: 0 auto;
+  /* Negative top margin neutralises the ContentWrapper gap between
+     TitleSection and MissionSection so the two text blocks sit flush. */
+  margin: -${theme.spacing.xl} auto 0;
   width: 100%;
 `;
 
@@ -114,15 +116,84 @@ export const PreferredCurrencies = styled.span`
   font-weight: ${theme.typography.fontWeight.semibold};
 `;
 
+/* "ecc…" with a hover/focus tooltip — used inside MissionText to surface
+   the call-to-action "Avete un vostro sistema di scambio?" only when the
+   user explicitly hovers the trigger. */
+export const EccWithTooltip = styled.span`
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dotted currentColor;
+  outline: none;
+
+  &::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: calc(100% + 0.5rem);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    background-color: ${theme.colors.primary};
+    color: ${theme.colors.textLight};
+    padding: 0.5rem 0.75rem;
+    border-radius: ${theme.borderRadius.md};
+    font-size: 0.8125rem;
+    font-style: italic;
+    font-weight: ${theme.typography.fontWeight.normal};
+    line-height: 1.4;
+    width: max-content;
+    max-width: min(20rem, 80vw);
+    text-align: center;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 150ms ease, visibility 150ms ease, transform 150ms ease;
+    z-index: 20;
+    box-shadow: ${theme.shadows.md};
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 0.125rem);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 0.375rem solid transparent;
+    border-top-color: ${theme.colors.primary};
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 150ms ease, visibility 150ms ease;
+    z-index: 20;
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    opacity: 1;
+    visibility: visible;
+  }
+`;
+
 export const LogosContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 1.5rem;
+  /* Halve the vertical space added by the ContentWrapper gap (2rem)
+     above and below this section. */
+  margin-top: -1rem;
+  margin-bottom: -1rem;
 
   @media (min-width: 768px) {
     gap: 2rem;
+    /* Wrapper gap at this breakpoint is 2.5rem, halve it. */
+    margin-top: -1.25rem;
+    margin-bottom: -1.25rem;
   }
 `;
 

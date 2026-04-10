@@ -16,7 +16,6 @@ import {
   ContentContainer,
   TextCenter,
   PageTitle,
-  PageSubtitle,
   FlexWrap,
   FilterButton,
   LoadingContainer,
@@ -66,6 +65,20 @@ export default function HomePageClient() {
 
   return (
     <PageContainer>
+      {/* TEMP: hero image preview above the WelcomeBanner */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logos/bannerblubig.jpg"
+        alt="Pagine Azzurre — del Progetto Val.Az.Co — spendi meno Euro, utilizza più VAL"
+        style={{
+          display: 'block',
+          width: '100%',
+          height: 'auto',
+          maxWidth: '80rem',
+          margin: '0 auto 1.5rem',
+        }}
+      />
+
       {/* Welcome Banner */}
       <WelcomeBanner />
 
@@ -76,9 +89,6 @@ export default function HomePageClient() {
         {/* Section Title */}
         <TextCenter>
           <PageTitle>Esposizione nuove attività</PageTitle>
-          <PageSubtitle>
-            Esplora le nostre sezioni di prodotti e servizi
-          </PageSubtitle>
         </TextCenter>
 
         {/* Section Filters */}

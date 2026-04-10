@@ -100,7 +100,7 @@ export function Product({ product }: ProductProps) {
                 </EuroAmount>
               </EuroPriceContainer>
               <ValPriceContainer>
-                <ValSymbol>☯</ValSymbol>
+                <ValSymbol>VAL</ValSymbol>
                 <ValAmount>{product.priceVal || 0}</ValAmount>
               </ValPriceContainer>
             </PricesRow>

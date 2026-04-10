@@ -332,7 +332,28 @@ function SearchContent() {
             </ErrorContainer>
           ) : products.length === 0 ? (
             <EmptyContainer>
-              <MessageBox variant="info">Nessun prodotto trovato</MessageBox>
+              <MessageBox variant="info">
+                <span>
+                  Nessun prodotto trovato — prova a cercarlo{' '}
+                  <a
+                    href="https://coseinutili.online/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: 'underline', fontWeight: 600 }}
+                  >
+                    qui
+                  </a>{' '}
+                  o{' '}
+                  <a
+                    href="https://mercato.comunitasolidali.it"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ textDecoration: 'underline', fontWeight: 600 }}
+                  >
+                    qui
+                  </a>
+                </span>
+              </MessageBox>
             </EmptyContainer>
           ) : (
             <>

@@ -13,22 +13,29 @@ import {
   MissionText,
   CurrencyList,
   PreferredCurrencies,
+  EccWithTooltip,
   LogosContainer,
   LogoWrapper,
   LogoBackground,
   FooterSection,
   FooterText,
   FooterHighlight,
-  LearnMoreLink,
 } from './WelcomeBanner.styles';
 
+// Per-logo padding tuning:
+//  - logos 1, 2, 4 (round/centered marks) get +33% padding for breathing room
+//  - logos 3, 5, 6 (wide banner-shaped marks) get near-zero horizontal padding
+//    so they fill the tile horizontally
+const PAD_BIG = '0.665rem';                  // 0.5rem * 1.33
+const PAD_WIDE = '0.5rem 0.1rem';            // tight horizontal, normal vertical
+
 const logos = [
-  { src: '/logos/comunitasolidali.png', alt: 'Comunita Solidali', href: 'https://mercato.comunitasolidali.it' },
-  { src: '/logos/magic_hands.jpg', alt: 'Magic Hands Logo' },
-  { src: '/logos/bannerarancione.jpg', alt: 'Banner Arancione' },
-  { src: '/logos/valazco-logo.png', alt: 'Valazco Logo' },
-  { src: '/logos/bannerblu.jpg', alt: 'Banner Blu' },
-  { src: '/images/coseinUtili.jpeg', alt: 'Cose(in)utili — cambia l\'inutile in utile', href: 'https://coseinutili.online' },
+  { src: '/logos/comunitasolidali.png', alt: 'Comunita Solidali', href: 'https://mercato.comunitasolidali.it', padding: PAD_BIG },
+  { src: '/logos/magic_hands.jpg', alt: 'Magic Hands Logo', padding: PAD_BIG },
+  { src: '/logos/bannerarancione.jpg', alt: 'Banner Arancione', padding: PAD_WIDE },
+  { src: '/logos/valazco-logo.png', alt: 'Valazco Logo', padding: PAD_BIG },
+  { src: '/logos/bannerblu.jpg', alt: 'Scopri di più su Pagine Azzurre', href: 'http://valazco.org/scopri-pagine-azzurre.html', padding: PAD_WIDE },
+  { src: '/images/coseinUtili.jpeg', alt: 'Cose(in)utili — cambia l\'inutile in utile', href: 'https://coseinutili.online', padding: PAD_WIDE },
 ];
 
 export function WelcomeBanner() {
@@ -40,11 +47,12 @@ export function WelcomeBanner() {
       <ContentWrapper>
         {/* Welcome Title */}
         <TitleSection>
-          <MainTitle>
+          {/* Hidden temporarily — MainTitle "Benvenuti in Pagine Azzurre" */}
+          {/* <MainTitle>
             Benvenuti in <BrandName>Pagine Azzurre</BrandName>
-          </MainTitle>
+          </MainTitle> */}
           <Subtitle>
-            piazza diffusa dove
+            Piazza diffusa dove
             barattiamo e scambiamo con più <span style={{ fontSize: '1.25em' }}>☯</span> VAL e meno Euro.
           </Subtitle>
         </TitleSection>
@@ -53,17 +61,21 @@ export function WelcomeBanner() {
         <MissionSection>
           <MissionText>
             Per l&apos;emancipazione della dimensione umana favoriamo lo scambio di
-            valori umani con le convenzioni:{' '}
+            valori umani con le convenzioni:
+            <br />
             <PreferredCurrencies>
-              VAL, Co-In, G1, RISO, SCEC, Din, ecc…
+              VAL, Co-In, G1, RISO, SCEC, Din,{' '}
+              <EccWithTooltip
+                tabIndex={0}
+                aria-label="Avete un vostro sistema di scambio? Proponetelo"
+                data-tooltip="Avete un vostro sistema di scambio? Proponetelo!"
+              >
+                ecc…
+              </EccWithTooltip>
             </PreferredCurrencies>
             <br />
-            <em>
-              ((? Avete un vostro sistema di scambio? Proponetelo))
-            </em>
-            <br />
             Si accettano complementariamente le convenzioni monetarie:{' '}
-            <CurrencyList>Euro, USD, FS, cripto, ecc…</CurrencyList>
+            <CurrencyList>Euro, USD, FS, cripto</CurrencyList>
           </MissionText>
         </MissionSection>
 
@@ -83,7 +95,7 @@ export function WelcomeBanner() {
                     width: '100%',
                     height: '100%',
                     objectFit: 'contain',
-                    padding: '0.5rem',
+                    padding: logo.padding,
                     borderRadius: '0.75rem',
                   }}
                 />
@@ -112,16 +124,6 @@ export function WelcomeBanner() {
             Pagineazzurre e una attivita promossa e gestita dal{' '}
             <FooterHighlight>Banco dei Cittadini Volontari del Val.Az.Co</FooterHighlight>
           </FooterText>
-          <LearnMoreLink
-            href="http://valazco.org/scopri-pagine-azzurre.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <span>Scopri di piu</span>
-            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </LearnMoreLink>
         </FooterSection>
       </ContentWrapper>
     </BannerContainer>

@@ -265,7 +265,8 @@ export function Header({ setSidebarIsOpen }: HeaderProps) {
         <HeaderBorder />
       </HeaderContainer>
 
-      <PostHeader />
+      {/* Hidden temporarily — PostHeader Iscriviti banner */}
+      {/* <PostHeader /> */}
     </>
   );
 }
