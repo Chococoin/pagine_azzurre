@@ -2,7 +2,6 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 import styled from 'styled-components';
 import { getProduct, createProductReview } from '@/lib/api/products';
@@ -11,12 +10,10 @@ import { useCartStore } from '@/lib/store/cart';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import Rating from '@/components/ui/Rating';
+import PurchaseCard from '@/components/ui/PurchaseCard';
 import {
   Container,
-  ThreeColumnGrid,
   SectionTitle,
-  CardBase,
-  StickyCard,
   PrimaryButton,
   FormGroup,
   Label,
@@ -123,57 +120,6 @@ const DescriptionText = styled.p`
   line-height: 1.625;
 `;
 
-const PurchaseCard = styled(StickyCard)``;
-
-const SellerSection = styled.div`
-  border-bottom: 1px solid #f3f4f6;
-  padding-bottom: 1rem;
-`;
-
-const SellerLabel = styled.p`
-  font-size: 0.875rem;
-  color: #6b7280;
-`;
-
-const SellerLink = styled(Link)`
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #2563eb;
-
-  &:hover {
-    color: #1d4ed8;
-  }
-`;
-
-const InfoRow = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-`;
-
-const InfoLabel = styled.span`
-  color: #6b7280;
-`;
-
-const InfoValue = styled.div`
-  text-align: right;
-`;
-
-const PriceValue = styled.span`
-  font-size: 1.5rem;
-  font-weight: 700;
-`;
-
-const PriceSecondary = styled.span`
-  display: block;
-  color: #2563eb;
-`;
-
-const AvailabilityBadge = styled.span<{ $available: boolean }>`
-  color: ${({ $available }) => ($available ? '#059669' : '#dc2626')};
-  font-weight: 500;
-`;
-
 const ReviewsSection = styled.div`
   margin-top: 3rem;
 `;
@@ -213,6 +159,7 @@ const ReviewFormCard = styled.div`
   background-color: #f9fafb;
   border-radius: 0.75rem;
   padding: 1.5rem;
+  margin-top: 1.5rem;
 `;
 
 const FormTitle = styled.h3`
@@ -298,11 +245,12 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
     }
   };
 
-  const showPrices =
+  const showPrices = !!(
     product &&
     product.section !== 'avviso' &&
     product.section !== 'propongo' &&
-    product.section !== 'dono';
+    product.section !== 'dono'
+  );
 
   if (loading) return <LoadingContainer><LoadingBox /></LoadingContainer>;
   if (error) return <ErrorContainer><MessageBox variant="danger">{error}</MessageBox></ErrorContainer>;
@@ -367,73 +315,31 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
 
         {/* Purchase Card */}
         <div>
-          <PurchaseCard>
-            {/* Seller Info */}
-            <SellerSection>
-              <SellerLabel>Offerente</SellerLabel>
-              <SellerLink href={`/seller/${product.seller._id}`}>
-                {product.seller.seller?.name || 'Venditore'}
-              </SellerLink>
-              {product.seller.seller && (
-                <Rating
-                  rating={product.seller.seller.rating}
-                  numReviews={product.seller.seller.numReviews}
-                />
-              )}
-            </SellerSection>
-
-            {/* Price */}
-            {showPrices && (
-              <InfoRow>
-                <InfoLabel>Prezzo</InfoLabel>
-                <InfoValue>
-                  <PriceValue>€ {product.priceEuro.toFixed(2)}</PriceValue>
-                  <PriceSecondary>☯ {product.priceVal}</PriceSecondary>
-                </InfoValue>
-              </InfoRow>
-            )}
-
-            {/* Availability */}
-            <InfoRow>
-              <InfoLabel>Disponibilità</InfoLabel>
-              <AvailabilityBadge $available={product.countInStock > 0}>
-                {product.countInStock > 0 ? 'Disponibile' : 'Non disponibile'}
-              </AvailabilityBadge>
-            </InfoRow>
-
-            {/* Quantity & Add to Cart */}
-            {product.countInStock > 0 && (
-              <>
-                <InfoRow>
-                  <InfoLabel>Quantità</InfoLabel>
-                  <Select
-                    value={qty}
-                    onChange={(e) => setQty(Number(e.target.value))}
-                    style={{ width: 'auto', padding: '0.5rem 1rem' }}
-                  >
-                    {[...Array(product.countInStock).keys()].map((x) => (
-                      <option key={x + 1} value={x + 1}>
-                        {x + 1}
-                      </option>
-                    ))}
-                  </Select>
-                </InfoRow>
-
-                <PrimaryButton onClick={addToCartHandler}>
-                  Contatta Offerente
-                </PrimaryButton>
-
-                {userInfo && !userInfo.hasAd && (
-                  <MessageBox variant="warning">
-                    Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
-                    <TextLink href="/productlist/seller">
-                      Crea l&apos;annuncio adesso
-                    </TextLink>
-                  </MessageBox>
-                )}
-              </>
-            )}
-          </PurchaseCard>
+          <PurchaseCard
+            seller={{
+              id: product.seller._id,
+              name: product.seller.seller?.name || 'Venditore',
+              rating: product.seller.seller?.rating ?? 0,
+              numReviews: product.seller.seller?.numReviews ?? 0,
+            }}
+            countInStock={product.countInStock}
+            qty={qty}
+            onQtyChange={setQty}
+            onContact={addToCartHandler}
+            priceEuro={product.priceEuro}
+            priceVal={product.priceVal}
+            showPrices={showPrices}
+            warning={
+              userInfo && !userInfo.hasAd ? (
+                <MessageBox variant="warning">
+                  Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
+                  <TextLink href="/productlist/seller">
+                    Crea l&apos;annuncio adesso
+                  </TextLink>
+                </MessageBox>
+              ) : undefined
+            }
+          />
         </div>
       </ProductGrid>
 
@@ -504,7 +410,9 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
               </form>
             ) : (
               <MessageBox variant="info">
-                <TextLink href="/signin">Accedi</TextLink> per scrivere una recensione
+                <span>
+                  <TextLink href="/signin">Accedi</TextLink> per scrivere una recensione
+                </span>
               </MessageBox>
             )}
           </ReviewFormCard>
