@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSession } from 'next-auth/react';
 import { useCartStore } from '@/lib/store/cart';
-import { useUserStore } from '@/lib/store/user';
 import CheckoutSteps from '@/components/ui/CheckoutSteps';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
@@ -23,7 +23,8 @@ import {
 
 export default function PlaceOrderPage() {
   const router = useRouter();
-  const { userInfo } = useUserStore();
+  const { data: session } = useSession();
+  const userInfo = session?.user;
   const { cartItems, shippingAddress, paymentMethod, clearCart } = useCartStore();
 
   const [loading, setLoading] = useState(false);
@@ -185,10 +186,12 @@ export default function PlaceOrderPage() {
             {!userInfo.hasAd && (
               <div style={{ marginTop: '1rem' }}>
                 <MessageBox variant="warning">
-                  Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
-                  <Link href="/productlist/seller" style={{ textDecoration: 'underline', fontWeight: '500' }}>
-                    Crea l&apos;annuncio adesso
-                  </Link>
+                  <span>
+                    Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
+                    <Link href="/productlist/seller" style={{ textDecoration: 'underline', fontWeight: 500 }}>
+                      Crea l&apos;annuncio adesso
+                    </Link>
+                  </span>
                 </MessageBox>
               </div>
             )}

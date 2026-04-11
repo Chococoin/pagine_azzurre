@@ -4,8 +4,8 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styled from 'styled-components';
+import { useSession } from 'next-auth/react';
 import { useCartStore } from '@/lib/store/cart';
-import { useUserStore } from '@/lib/store/user';
 import CheckoutSteps from '@/components/ui/CheckoutSteps';
 import MessageBox from '@/components/ui/MessageBox';
 import { Container, CardBase, FormGroup, Label, Input, PrimaryButton } from '@/lib/styles';
@@ -53,7 +53,8 @@ const StyledLink = styled(Link)`
 
 export default function ShippingPage() {
   const router = useRouter();
-  const { userInfo } = useUserStore();
+  const { data: session, status } = useSession();
+  const userInfo = session?.user;
   const { shippingAddress, saveShippingAddress } = useCartStore();
 
   const [fullName, setFullName] = useState(shippingAddress?.fullName || '');
@@ -65,10 +66,12 @@ export default function ShippingPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    if (status === 'loading') return;
     if (!userInfo) {
       router.push('/signin?redirect=shipping');
     }
-  }, [userInfo, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   const submitHandler = (e: FormEvent) => {
     e.preventDefault();
@@ -158,7 +161,7 @@ export default function ShippingPage() {
             <ReadOnlyInput
               type="email"
               id="email"
-              value={userInfo.email}
+              value={userInfo.email ?? ''}
               readOnly
             />
           </FormGroup>
@@ -180,10 +183,12 @@ export default function ShippingPage() {
 
           {!userInfo.hasAd && (
             <MessageBox variant="warning">
-              Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
-              <StyledLink href="/productlist/seller">
-                Crea l&apos;annuncio adesso
-              </StyledLink>
+              <span>
+                Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
+                <StyledLink href="/productlist/seller">
+                  Crea l&apos;annuncio adesso
+                </StyledLink>
+              </span>
             </MessageBox>
           )}
         </FormSection>

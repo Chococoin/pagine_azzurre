@@ -139,7 +139,7 @@ const DeleteButton = styled.button`
 
 export default function ProductListPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const userInfo = session?.user;
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -157,8 +157,9 @@ export default function ProductListPage() {
       return;
     }
     fetchProducts();
+    // Minimal deps — see ProductEditPage for the rationale.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, userInfo, router, page]);
+  }, [status, page]);
 
   const fetchProducts = async () => {
     try {
@@ -182,6 +183,15 @@ export default function ProductListPage() {
     try {
       setActionLoading(true);
       const product = await createProduct();
+      // The POST endpoint also flips hasAd=true in the user doc the first
+      // time a seller publishes. Ask NextAuth to re-issue the JWT so the
+      // session picks up the new flag and the "devi mettere un prodotto
+      // in vetrina" warning disappears without requiring a re-login.
+      try {
+        await updateSession();
+      } catch (e) {
+        console.error('Session update failed:', e);
+      }
       router.push(`/product/${product._id}/edit`);
     } catch {
       alert('Errore nella creazione del prodotto');

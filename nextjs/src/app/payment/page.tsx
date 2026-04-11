@@ -4,8 +4,8 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import styled from 'styled-components';
+import { useSession } from 'next-auth/react';
 import { useCartStore } from '@/lib/store/cart';
-import { useUserStore } from '@/lib/store/user';
 import CheckoutSteps from '@/components/ui/CheckoutSteps';
 import MessageBox from '@/components/ui/MessageBox';
 import { Container, CardBase, FormGroup, Label, Select, PrimaryButton, SecondaryButton } from '@/lib/styles';
@@ -69,7 +69,8 @@ const StyledLink = styled(Link)`
 
 export default function PaymentPage() {
   const router = useRouter();
-  const { userInfo } = useUserStore();
+  const { data: session } = useSession();
+  const userInfo = session?.user;
   const { shippingAddress, cartItems, savePaymentMethod } = useCartStore();
 
   const [paymentMethod, setPaymentMethod] = useState('Concordato');
@@ -130,10 +131,12 @@ export default function PaymentPage() {
 
             {!userInfo.hasAd && (
               <MessageBox variant="warning">
-                Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
-                <StyledLink href="/productlist/seller">
-                  Crea l&apos;annuncio adesso
-                </StyledLink>
+                <span>
+                  Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
+                  <StyledLink href="/productlist/seller">
+                    Crea l&apos;annuncio adesso
+                  </StyledLink>
+                </span>
               </MessageBox>
             )}
           </FormSection>
@@ -163,10 +166,12 @@ export default function PaymentPage() {
 
             {!userInfo.hasAd && (
               <MessageBox variant="warning">
-                Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
-                <StyledLink href="/productlist/seller">
-                  Crea l&apos;annuncio adesso
-                </StyledLink>
+                <span>
+                  Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
+                  <StyledLink href="/productlist/seller">
+                    Crea l&apos;annuncio adesso
+                  </StyledLink>
+                </span>
               </MessageBox>
             )}
           </FormSection>

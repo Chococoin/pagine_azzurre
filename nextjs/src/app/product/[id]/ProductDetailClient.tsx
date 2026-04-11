@@ -2,10 +2,10 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import styled from 'styled-components';
 import { getProduct, createProductReview } from '@/lib/api/products';
-import { useUserStore } from '@/lib/store/user';
 import { useCartStore } from '@/lib/store/cart';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
@@ -188,7 +188,8 @@ export default function ProductDetailClient({ productId }: ProductDetailClientPr
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState('');
 
-  const { userInfo } = useUserStore();
+  const { data: session } = useSession();
+  const userInfo = session?.user;
   const { addToCart } = useCartStore();
 
   useEffect(() => {

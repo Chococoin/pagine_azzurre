@@ -95,7 +95,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.isAdmin = user.isAdmin;
@@ -104,6 +104,32 @@ export const authOptions: NextAuthOptions = {
         token.account = user.account;
         token.sellerName = user.sellerName;
       }
+
+      // When the client calls useSession().update(), NextAuth invokes the
+      // JWT callback with trigger='update' so we can re-sync mutable flags
+      // from the database (e.g. hasAd after the seller publishes their
+      // first product). We avoid re-reading on every request to keep the
+      // hot path cheap.
+      if (trigger === 'update' && token.id) {
+        try {
+          await connectDB();
+          const fresh = await UserModel.findById(token.id).lean<{
+            isAdmin?: boolean;
+            isSeller?: boolean;
+            hasAd?: boolean;
+            seller?: { name?: string };
+          }>();
+          if (fresh) {
+            token.isAdmin = fresh.isAdmin ?? token.isAdmin;
+            token.isSeller = fresh.isSeller ?? token.isSeller;
+            token.hasAd = fresh.hasAd ?? token.hasAd;
+            token.sellerName = fresh.seller?.name ?? token.sellerName;
+          }
+        } catch (err) {
+          console.error('[auth] jwt update refresh failed:', err);
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {

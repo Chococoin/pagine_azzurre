@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import connectDB from '@/lib/db/mongoose';
 import ProductModel from '@/lib/db/models/Product';
+import UserModel from '@/lib/db/models/User';
 import { authOptions } from '@/lib/auth/config';
 import { extractCity } from '@/lib/utils/cities';
 
@@ -165,6 +166,15 @@ export async function POST() {
     });
 
     const createdProduct = await product.save();
+
+    // Flip hasAd the first time a seller publishes. Without this the
+    // "per contattare un offerente devi prima mettere un prodotto in
+    // vetrina" warning never goes away even after they create a product.
+    // Idempotent: only writes when the flag is still false.
+    await UserModel.updateOne(
+      { _id: session.user.id, hasAd: { $ne: true } },
+      { $set: { hasAd: true } }
+    );
 
     return NextResponse.json({
       message: 'Product Created',

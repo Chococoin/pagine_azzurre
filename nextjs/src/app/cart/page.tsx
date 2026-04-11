@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 import { useCartStore } from '@/lib/store/cart';
-import { useUserStore } from '@/lib/store/user';
 import { CartItem, MessageBox } from '@/components/ui';
 import {
   Container,
@@ -27,7 +27,8 @@ import {
 export default function CartPage() {
   const router = useRouter();
   const { cartItems } = useCartStore();
-  const { userInfo } = useUserStore();
+  const { data: session } = useSession();
+  const userInfo = session?.user;
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -54,8 +55,10 @@ export default function CartPage() {
         <MainColumn>
           {cartItems.length === 0 ? (
             <MessageBox variant="info">
-              Il carrello è vuoto.{' '}
-              <TextLink href="/">Torna alla Vetrina</TextLink>
+              <span>
+                Il carrello è vuoto.{' '}
+                <TextLink href="/">Torna alla Vetrina</TextLink>
+              </span>
             </MessageBox>
           ) : (
             <ItemList>
@@ -102,10 +105,12 @@ export default function CartPage() {
             {userInfo && !userInfo.hasAd && (
               <div style={{ marginTop: '1rem' }}>
                 <MessageBox variant="warning">
-                  Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
-                  <Link href="/productlist/seller" style={{ textDecoration: 'underline', fontWeight: 500 }}>
-                    Crea l&apos;annuncio adesso
-                  </Link>
+                  <span>
+                    Per contattare un offerente devi prima mettere un prodotto in vetrina.{' '}
+                    <Link href="/productlist/seller" style={{ textDecoration: 'underline', fontWeight: 500 }}>
+                      Crea l&apos;annuncio adesso
+                    </Link>
+                  </span>
                 </MessageBox>
               </div>
             )}
@@ -113,11 +118,13 @@ export default function CartPage() {
             {!userInfo && (
               <div style={{ marginTop: '1rem' }}>
                 <MessageBox variant="warning">
-                  Devi essere{' '}
-                  <Link href="/signin" style={{ textDecoration: 'underline', fontWeight: 500 }}>
-                    loggato
-                  </Link>{' '}
-                  per continuare.
+                  <span>
+                    Devi essere{' '}
+                    <Link href="/signin" style={{ textDecoration: 'underline', fontWeight: 500 }}>
+                      loggato
+                    </Link>
+                    {' '}per continuare.
+                  </span>
                 </MessageBox>
               </div>
             )}
