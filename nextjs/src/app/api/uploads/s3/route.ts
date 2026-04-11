@@ -58,13 +58,14 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Upload to S3
+    // Upload to S3.
+    // No ACL: AWS disabled object ACLs by default on new buckets since 2023.
+    // Public read must be handled by a bucket policy on `pagineazzurre2`.
     const command = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: filename,
       Body: buffer,
       ContentType: file.type,
-      ACL: 'public-read',
     });
 
     await s3Client.send(command);
@@ -77,9 +78,13 @@ export async function POST(request: NextRequest) {
       filename,
     });
   } catch (error) {
-    console.error('Error uploading to S3:', error);
+    // Surface the actual AWS error so we can diagnose credentials, ACL,
+    // or bucket-policy issues from the client-side toast.
+    const detail =
+      error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    console.error('[uploads/s3] Upload failed:', detail);
     return NextResponse.json(
-      { message: 'Errore nel caricamento su S3' },
+      { message: `Errore nel caricamento su S3 — ${detail}` },
       { status: 500 }
     );
   }

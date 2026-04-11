@@ -242,8 +242,12 @@ export default function ProductEditPage() {
     getProductCategories()
       .then((cats) => setCategories(cats))
       .catch((err) => console.error('Failed to load categories', err));
+    // IMPORTANT: keep this dep array minimal. useSession() can return a
+    // new session.user reference on every render, and if userInfo were
+    // in the deps the effect would re-fire → fetchProduct() would
+    // overwrite whatever the seller was typing in the form.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productId, status, userInfo, router]);
+  }, [productId, status]);
 
   const fetchProduct = async () => {
     try {
