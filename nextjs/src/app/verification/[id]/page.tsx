@@ -63,8 +63,6 @@ export default function VerificationLinkPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const [userName, setUserName] = useState('');
-  // TEMP: surface auto-login outcome in the UI for live debugging
-  const [autoLoginDebug, setAutoLoginDebug] = useState<string>('');
 
   // Use AbortController to handle React Strict Mode double-mounting
   // and prevent race conditions
@@ -121,26 +119,16 @@ export default function VerificationLinkPage() {
           // Exchange the one-shot loginToken for a real NextAuth session.
           // The verification-autologin provider clears the token atomically
           // so the link cannot be reused for a second auto-login.
-          if (!data.loginToken) {
-            setAutoLoginDebug('NO loginToken in API response');
-            console.error('[autologin] missing loginToken in response', data);
-          } else {
+          if (data.loginToken) {
             try {
               const result = await signIn('verification-autologin', {
                 token: data.loginToken,
                 redirect: false,
               });
               if (result?.error) {
-                setAutoLoginDebug(`signIn error: ${result.error}`);
-                console.error('[autologin] signIn error:', result);
-              } else if (result?.ok) {
-                setAutoLoginDebug('signIn ok — refreshing session…');
-                console.log('[autologin] signIn ok', result);
-              } else {
-                setAutoLoginDebug(`signIn unknown result: ${JSON.stringify(result)}`);
+                console.error('[autologin] signIn error:', result.error);
               }
             } catch (e) {
-              setAutoLoginDebug(`signIn threw: ${(e as Error).message}`);
               console.error('[autologin] signIn threw:', e);
             }
           }
@@ -204,11 +192,6 @@ export default function VerificationLinkPage() {
             <Description>
               Verrai reindirizzato alla home page tra pochi secondi...
             </Description>
-            {autoLoginDebug && (
-              <Description style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
-                debug: {autoLoginDebug}
-              </Description>
-            )}
             <Link href="/">
               <PrimaryButton>Vai alla Home</PrimaryButton>
             </Link>

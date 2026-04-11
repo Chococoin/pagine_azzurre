@@ -60,7 +60,6 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.token) {
-          console.error('[verification-autologin] missing token');
           throw new Error('Token di verifica mancante');
         }
 
@@ -75,16 +74,12 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!user) {
-          console.error('[verification-autologin] no user matched token', credentials.token);
           throw new Error('Token di verifica non valido o già utilizzato');
         }
 
         if (!user.verify?.verified) {
-          console.error('[verification-autologin] user not verified', user._id.toString());
           throw new Error('Account non verificato');
         }
-
-        console.log('[verification-autologin] success for user', user._id.toString());
 
         return {
           id: user._id.toString(),
