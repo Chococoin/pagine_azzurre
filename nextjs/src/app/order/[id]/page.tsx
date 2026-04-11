@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import apiClient from '@/lib/api/client';
-import { useUserStore } from '@/lib/store/user';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import type { Order } from '@/types';
@@ -23,7 +23,8 @@ import {
 export default function OrderPage() {
   const params = useParams();
   const orderId = params.id as string;
-  const { userInfo } = useUserStore();
+  const { data: session } = useSession();
+  const userInfo = session?.user;
 
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +76,7 @@ export default function OrderPage() {
   if (error) return <MessageBox variant="danger">{error}</MessageBox>;
   if (!order) return <MessageBox variant="danger">Ordine non trovato</MessageBox>;
 
-  const isSeller = userInfo?._id === order.seller;
+  const isSeller = userInfo?.id === order.seller;
 
   return (
     <Container style={{ padding: '2rem 1rem' }}>

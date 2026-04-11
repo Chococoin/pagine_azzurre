@@ -2,8 +2,8 @@
 
 import { useState, useEffect, FormEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import apiClient from '@/lib/api/client';
-import { useUserStore } from '@/lib/store/user';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import type { User } from '@/types';
@@ -89,7 +89,8 @@ export default function UserEditPage() {
   const params = useParams();
   const router = useRouter();
   const userId = params.id as string;
-  const { userInfo } = useUserStore();
+  const { data: session, status } = useSession();
+  const userInfo = session?.user;
 
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -102,12 +103,14 @@ export default function UserEditPage() {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
+    if (status === 'loading') return;
     if (!userInfo?.isAdmin) {
       router.push('/signin');
       return;
     }
     fetchUser();
-  }, [userId, userInfo, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, status]);
 
   const fetchUser = async () => {
     try {

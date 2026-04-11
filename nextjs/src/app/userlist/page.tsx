@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import apiClient from '@/lib/api/client';
-import { useUserStore } from '@/lib/store/user';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import type { User } from '@/types';
@@ -16,19 +16,22 @@ import {
 
 export default function UserListPage() {
   const router = useRouter();
-  const { userInfo } = useUserStore();
+  const { data: session, status } = useSession();
+  const userInfo = session?.user;
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (status === 'loading') return;
     if (!userInfo?.isAdmin) {
       router.push('/signin');
       return;
     }
     fetchUsers();
-  }, [userInfo, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   const fetchUsers = async () => {
     try {
