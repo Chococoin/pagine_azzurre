@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import apiClient from '@/lib/api/client';
-import { useUserStore } from '@/lib/store/user';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import type { Order } from '@/types';
@@ -16,24 +16,31 @@ import {
 
 export default function OrderListPage() {
   const router = useRouter();
-  const { userInfo } = useUserStore();
+  const { data: session, status } = useSession();
+  const userInfo = session?.user;
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (status === 'loading') return;
     if (!userInfo?.isAdmin && !userInfo?.isSeller) {
       router.push('/signin');
       return;
     }
     fetchOrders();
-  }, [userInfo, router]);
+    // Minimal deps (see ProductEditPage for rationale)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const { data } = await apiClient.get('/orders');
+      // Sellers see only the orders placed against their own products;
+      // admins see everything.
+      const query = !userInfo?.isAdmin && userInfo?.id ? `?seller=${userInfo.id}` : '';
+      const { data } = await apiClient.get(`/orders${query}`);
       // Handle both array response and { orders: [...] } response
       setOrders(Array.isArray(data) ? data : data.orders || []);
     } catch {
@@ -57,7 +64,9 @@ export default function OrderListPage() {
 
   return (
     <Container style={{ padding: '2rem 1rem' }}>
-      <PageTitle>Gestione Ordini</PageTitle>
+      <PageTitle>
+        {userInfo.isAdmin ? 'Gestione Ordini' : 'La mia attività'}
+      </PageTitle>
 
       {loading ? (
         <LoadingBox />

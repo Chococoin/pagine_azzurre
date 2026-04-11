@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import apiClient from '@/lib/api/client';
-import { useUserStore } from '@/lib/store/user';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import type { Order } from '@/types';
@@ -17,19 +17,25 @@ import {
 
 export default function OrderHistoryPage() {
   const router = useRouter();
-  const { userInfo } = useUserStore();
+  const { data: session, status } = useSession();
+  const userInfo = session?.user;
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    // Wait for NextAuth to resolve before redirecting. Otherwise the
+    // initial render (status === 'loading') would bounce the user to
+    // /signin in a loop until the JWT hydrates.
+    if (status === 'loading') return;
     if (!userInfo) {
       router.push('/signin?redirect=orderhistory');
       return;
     }
     fetchOrders();
-  }, [userInfo, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
 
   const fetchOrders = async () => {
     try {
@@ -55,10 +61,10 @@ export default function OrderHistoryPage() {
         <MessageBox variant="danger">{error}</MessageBox>
       ) : orders.length === 0 ? (
         <MessageBox variant="info">
-          Non hai ancora effettuato ordini.{' '}
-          <TextLink href="/">
-            Vai alla vetrina
-          </TextLink>
+          <span>
+            Non hai ancora effettuato ordini.{' '}
+            <TextLink href="/">Vai alla vetrina</TextLink>
+          </span>
         </MessageBox>
       ) : (
         <CardBase style={{ padding: 0, overflow: 'hidden' }}>
