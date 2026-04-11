@@ -81,7 +81,7 @@ const userSchema = new Schema<UserDocument>(
     phone: { type: String, required: false, unique: true, sparse: true },
     password: { type: String, required: true },
     recoveryPasswordId: { type: String, required: false, default: '' },
-    loginToken: { type: String, required: false, default: null, select: false },
+    loginToken: { type: String, required: false, default: null },
     referer: { type: [String], required: false },
     isAdmin: { type: Boolean, default: false, required: true },
     isSeller: { type: Boolean, default: true, required: true },

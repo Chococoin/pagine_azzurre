@@ -60,24 +60,31 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.token) {
+          console.error('[verification-autologin] missing token');
           throw new Error('Token di verifica mancante');
         }
 
         await connectDB();
 
+        // Atomically consume the one-shot loginToken and return the prior
+        // document so we can issue a session for it.
         const user = await UserModel.findOneAndUpdate(
           { loginToken: credentials.token },
           { $unset: { loginToken: '' } },
           { new: false }
-        ).select('+loginToken');
+        );
 
         if (!user) {
+          console.error('[verification-autologin] no user matched token', credentials.token);
           throw new Error('Token di verifica non valido o già utilizzato');
         }
 
         if (!user.verify?.verified) {
+          console.error('[verification-autologin] user not verified', user._id.toString());
           throw new Error('Account non verificato');
         }
+
+        console.log('[verification-autologin] success for user', user._id.toString());
 
         return {
           id: user._id.toString(),

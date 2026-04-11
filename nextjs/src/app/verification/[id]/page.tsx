@@ -63,6 +63,8 @@ export default function VerificationLinkPage() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
   const [userName, setUserName] = useState('');
+  // TEMP: surface auto-login outcome in the UI for live debugging
+  const [autoLoginDebug, setAutoLoginDebug] = useState<string>('');
 
   // Use AbortController to handle React Strict Mode double-mounting
   // and prevent race conditions
@@ -119,25 +121,35 @@ export default function VerificationLinkPage() {
           // Exchange the one-shot loginToken for a real NextAuth session.
           // The verification-autologin provider clears the token atomically
           // so the link cannot be reused for a second auto-login.
-          if (data.loginToken) {
+          if (!data.loginToken) {
+            setAutoLoginDebug('NO loginToken in API response');
+            console.error('[autologin] missing loginToken in response', data);
+          } else {
             try {
               const result = await signIn('verification-autologin', {
                 token: data.loginToken,
                 redirect: false,
               });
               if (result?.error) {
-                console.error('Auto-login failed:', result.error);
+                setAutoLoginDebug(`signIn error: ${result.error}`);
+                console.error('[autologin] signIn error:', result);
+              } else if (result?.ok) {
+                setAutoLoginDebug('signIn ok — refreshing session…');
+                console.log('[autologin] signIn ok', result);
+              } else {
+                setAutoLoginDebug(`signIn unknown result: ${JSON.stringify(result)}`);
               }
             } catch (e) {
-              console.error('Auto-login threw:', e);
+              setAutoLoginDebug(`signIn threw: ${(e as Error).message}`);
+              console.error('[autologin] signIn threw:', e);
             }
           }
 
-          // Redirect to home after 3 seconds
+          // Hard reload to /  so the new NextAuth cookie is read fresh by
+          // the SessionProvider (router.push alone sometimes misses it).
           setTimeout(() => {
             if (!isCancelled) {
-              router.push('/');
-              router.refresh();
+              window.location.assign('/');
             }
           }, 3000);
         } else {
@@ -192,6 +204,11 @@ export default function VerificationLinkPage() {
             <Description>
               Verrai reindirizzato alla home page tra pochi secondi...
             </Description>
+            {autoLoginDebug && (
+              <Description style={{ fontSize: '0.75rem', color: '#9ca3af' }}>
+                debug: {autoLoginDebug}
+              </Description>
+            )}
             <Link href="/">
               <PrimaryButton>Vai alla Home</PrimaryButton>
             </Link>
