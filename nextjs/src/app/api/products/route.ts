@@ -26,9 +26,14 @@ export async function GET(request: NextRequest) {
     const { city, cleanQuery } = extractCity(name);
 
     // Build filters
+    // Public listings hide draft products that still carry the auto-assigned
+    // "Annunciø n° …" placeholder name. Seller dashboards (filter by seller)
+    // must still show their own drafts so they can finish editing them.
     const nameFilter = name
       ? { name: { $regex: cleanQuery.trim(), $options: 'i' } }
-      : { name: { $not: { $regex: 'Annunciø' } } };
+      : seller
+        ? {}
+        : { name: { $not: { $regex: 'Annunciø' } } };
 
     const literalFilter = name
       ? { name: { $regex: name, $options: 'i' } }

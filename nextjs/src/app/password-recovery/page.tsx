@@ -94,8 +94,28 @@ export default function PasswordRecoveryPage() {
     try {
       await requestPasswordRecovery(email);
       setSuccess(true);
-    } catch {
-      setError("L'email non risulta registrata. Vuoi registrarti adesso?");
+    } catch (err: unknown) {
+      // Distinguish 404 (email not in DB) from 500 (server / mailer failure)
+      // so the user gets actionable feedback instead of a generic message.
+      const status =
+        typeof err === 'object' && err !== null && 'response' in err
+          ? ((err as { response?: { status?: number } }).response?.status ?? 0)
+          : 0;
+      const apiMessage =
+        typeof err === 'object' && err !== null && 'response' in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+
+      if (status === 404) {
+        setError("L'email non risulta registrata. Vuoi registrarti adesso?");
+      } else if (status >= 500 || status === 0) {
+        setError(
+          apiMessage ||
+            'Errore nel server. Riprova tra qualche minuto o contatta il supporto.'
+        );
+      } else {
+        setError(apiMessage || 'Errore nella richiesta di recupero password.');
+      }
     } finally {
       setLoading(false);
     }

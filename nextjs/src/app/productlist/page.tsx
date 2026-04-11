@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import Image from 'next/image';
 import styled from 'styled-components';
 import { getProducts, deleteProduct, createProduct } from '@/lib/api/products';
-import { useUserStore } from '@/lib/store/user';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import Pagination from '@/components/ui/Pagination';
@@ -139,7 +139,8 @@ const DeleteButton = styled.button`
 
 export default function ProductListPage() {
   const router = useRouter();
-  const { userInfo } = useUserStore();
+  const { data: session, status } = useSession();
+  const userInfo = session?.user;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [page, setPage] = useState(1);
@@ -149,20 +150,23 @@ export default function ProductListPage() {
   const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
+    // Wait for NextAuth to resolve before deciding to redirect
+    if (status === 'loading') return;
     if (!userInfo?.isAdmin && !userInfo?.isSeller) {
       router.push('/signin');
       return;
     }
     fetchProducts();
-  }, [userInfo, router, page]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, userInfo, router, page]);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
       // Sellers see only their own products; admins see everything.
       const filters: { pageNumber: number; seller?: string } = { pageNumber: page };
-      if (!userInfo?.isAdmin && userInfo?._id) {
-        filters.seller = userInfo._id;
+      if (!userInfo?.isAdmin && userInfo?.id) {
+        filters.seller = userInfo.id;
       }
       const data = await getProducts(filters);
       setProducts(data.products);

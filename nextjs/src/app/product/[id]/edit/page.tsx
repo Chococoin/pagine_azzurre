@@ -1,10 +1,25 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 import styled from 'styled-components';
-import { getProduct, updateProduct } from '@/lib/api/products';
-import { useUserStore } from '@/lib/store/user';
+import { getProduct, getProductCategories, updateProduct } from '@/lib/api/products';
+
+// Default placeholder images set by the API on creation / save when no
+// real image is provided. They should not appear in the seller gallery —
+// the gallery only shows uploaded media.
+const DEFAULT_IMAGE_PATHS = new Set<string>([
+  '/images/offro_prodotto.jpg',
+  '/images/offro_servizio.jpg',
+  '/images/cerco_prodotto.jpg',
+  '/images/cerco_servizio.jpg',
+  '/images/avviso.jpg',
+  '/images/propongo.jpg',
+]);
+
+const isUploadedImage = (url: string) => !!url && !DEFAULT_IMAGE_PATHS.has(url);
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import {
@@ -61,46 +76,196 @@ const Checkbox = styled.input`
   border-radius: 0.25rem;
 `;
 
+/* Image gallery */
+const ImageGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+`;
+
+const ImageThumb = styled.div`
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+`;
+
+const RemoveImageButton = styled.button`
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  border: none;
+  background-color: rgba(220, 38, 38, 0.9);
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: rgba(185, 28, 28, 1);
+  }
+`;
+
+const AddImageTile = styled.label`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border-radius: 0.5rem;
+  border: 2px dashed #d1d5db;
+  background-color: #f9fafb;
+  color: #6b7280;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+  text-align: center;
+  padding: 0.5rem;
+  gap: 0.25rem;
+
+  &:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+    background-color: #eff6ff;
+  }
+
+  span:first-child {
+    font-size: 1.5rem;
+    line-height: 1;
+  }
+`;
+
+const HiddenFileInput = styled.input`
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+`;
+
+/* Decimal text input with custom unit-step spinner buttons.
+   Used for Prezzo Euro so the user can type with comma as decimal
+   separator while still nudging the value by 1 with the arrows. */
+const DecimalInputWrapper = styled.div`
+  position: relative;
+`;
+
+const DecimalSpinner = styled.div`
+  position: absolute;
+  top: 1px;
+  bottom: 1px;
+  right: 1px;
+  width: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid #e5e7eb;
+  border-radius: 0 0.5rem 0.5rem 0;
+  overflow: hidden;
+`;
+
+const DecimalSpinnerBtn = styled.button`
+  flex: 1;
+  border: none;
+  background-color: #f9fafb;
+  color: #6b7280;
+  font-size: 0.625rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  &:hover {
+    background-color: #e5e7eb;
+    color: #111827;
+  }
+
+  & + & {
+    border-top: 1px solid #e5e7eb;
+  }
+`;
+
 export default function ProductEditPage() {
   const params = useParams();
   const router = useRouter();
   const productId = params.id as string;
-  const { userInfo } = useUserStore();
+  const { data: session, status } = useSession();
+  const userInfo = session?.user;
 
   const [name, setName] = useState('');
   const [priceEuro, setPriceEuro] = useState(0);
   const [priceVal, setPriceVal] = useState(0);
   const [category, setCategory] = useState('');
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState('');
+  const [categories, setCategories] = useState<string[]>([]);
   const [countInStock, setCountInStock] = useState(0);
   const [description, setDescription] = useState('');
   const [section, setSection] = useState<'offro' | 'cerco' | 'propongo' | 'avviso' | 'dono'>('offro');
   const [isService, setIsService] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [imageUploading, setImageUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
 
   useEffect(() => {
+    // Wait for NextAuth to resolve before deciding to redirect
+    if (status === 'loading') return;
     if (!userInfo?.isAdmin && !userInfo?.isSeller) {
       router.push('/signin');
       return;
     }
     fetchProduct();
-  }, [productId, userInfo, router]);
+    // Fire-and-forget: load existing categories for the select dropdown
+    getProductCategories()
+      .then((cats) => setCategories(cats))
+      .catch((err) => console.error('Failed to load categories', err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId, status, userInfo, router]);
 
   const fetchProduct = async () => {
     try {
       setLoading(true);
       const product = await getProduct(productId);
-      setName(product.name);
-      setPriceEuro(product.priceEuro);
-      setPriceVal(product.priceVal);
-      setCategory(product.category);
-      setCountInStock(product.countInStock);
-      setDescription(product.description);
-      setSection(product.section);
-      setIsService(product.isService);
+      // Coalesce every field so the inputs always start controlled — never
+      // toggle from undefined to a number/string after the fetch resolves.
+      setName(product.name ?? '');
+      setPriceEuro(product.priceEuro ?? 0);
+      setPriceVal(product.priceVal ?? 0);
+      setCategory(product.category ?? '');
+      setCountInStock(product.countInStock ?? 0);
+      setDescription(product.description ?? '');
+      setSection(product.section ?? 'offro');
+      setIsService(product.isService ?? false);
+      // Strip placeholder defaults so the gallery starts empty when the
+      // product only has the auto-assigned default image.
+      setImages(
+        Array.isArray(product.image)
+          ? product.image.filter(isUploadedImage)
+          : []
+      );
     } catch {
       setError('Errore nel caricamento del prodotto');
     } finally {
@@ -108,8 +273,83 @@ export default function ProductEditPage() {
     }
   };
 
+  // Once categories are loaded, decide whether the existing product category
+  // matches a known one or counts as a custom value.
+  useEffect(() => {
+    if (!loading && categories.length > 0 && category) {
+      if (!categories.includes(category)) {
+        setIsCustomCategory(true);
+        setCustomCategory(category);
+      }
+    }
+  }, [loading, categories, category]);
+
+  const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value === '__altra__') {
+      setIsCustomCategory(true);
+      setCustomCategory('');
+    } else {
+      setIsCustomCategory(false);
+      setCategory(value);
+    }
+  };
+
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setImageUploading(true);
+    setUploadError('');
+
+    try {
+      const uploadedUrls: string[] = [];
+      for (const file of Array.from(files)) {
+        const formData = new FormData();
+        formData.append('image', file);
+
+        const response = await fetch('/api/uploads/s3', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(err.message || 'Errore nel caricamento immagine');
+        }
+
+        const data = await response.json();
+        if (data.url) uploadedUrls.push(data.url);
+      }
+
+      setImages((prev) => [...prev, ...uploadedUrls]);
+    } catch (err) {
+      setUploadError(err instanceof Error ? err.message : 'Errore upload');
+    } finally {
+      setImageUploading(false);
+      // Reset the file input so re-uploading the same file fires onChange
+      e.target.value = '';
+    }
+  };
+
+  const handleImageRemove = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const submitHandler = async (e: FormEvent) => {
     e.preventDefault();
+
+    // Resolve effective category — pick the custom value when "Altra"
+    // is selected, otherwise the dropdown value.
+    const effectiveCategory = isCustomCategory
+      ? customCategory.trim().toUpperCase()
+      : category;
+
+    if (!effectiveCategory) {
+      setError('La categoria è obbligatoria');
+      return;
+    }
+
     try {
       setUpdateLoading(true);
       setError('');
@@ -117,11 +357,12 @@ export default function ProductEditPage() {
         name,
         priceEuro,
         priceVal,
-        category,
+        category: effectiveCategory,
         countInStock,
         description,
         section,
         isService,
+        image: images,
       });
       setSuccess(true);
       setTimeout(() => router.push('/productlist'), 1500);
@@ -156,44 +397,156 @@ export default function ProductEditPage() {
 
           <FormGrid $twoCols>
             <FormGroup>
-              <Label>Prezzo Euro *</Label>
-              <Input
-                type="number"
-                step="0.01"
-                required
-                value={priceEuro}
-                onChange={(e) => setPriceEuro(Number(e.target.value))}
-              />
+              <Label>Prezzo Euro</Label>
+              <DecimalInputWrapper>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.,]?[0-9]*"
+                  // Optional — sellers can offer free products / services
+                  // Show comma as the decimal separator (Italian convention)
+                  // but accept either comma or dot when typing.
+                  value={
+                    priceEuro
+                      ? String(priceEuro).replace('.', ',')
+                      : ''
+                  }
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(',', '.');
+                    if (raw === '') {
+                      setPriceEuro(0);
+                      return;
+                    }
+                    // Allow only digits and a single decimal point while typing
+                    if (/^\d*\.?\d*$/.test(raw)) {
+                      const parsed = raw === '.' ? 0 : Number(raw);
+                      if (!Number.isNaN(parsed)) setPriceEuro(parsed);
+                    }
+                  }}
+                  style={{ paddingRight: '2.25rem' }}
+                />
+                <DecimalSpinner>
+                  <DecimalSpinnerBtn
+                    type="button"
+                    aria-label="Aumenta di 1"
+                    onClick={() => setPriceEuro((p) => Math.floor(p) + 1)}
+                  >
+                    ▲
+                  </DecimalSpinnerBtn>
+                  <DecimalSpinnerBtn
+                    type="button"
+                    aria-label="Diminuisci di 1"
+                    onClick={() =>
+                      setPriceEuro((p) => Math.max(0, Math.floor(p) - 1))
+                    }
+                  >
+                    ▼
+                  </DecimalSpinnerBtn>
+                </DecimalSpinner>
+              </DecimalInputWrapper>
             </FormGroup>
             <FormGroup>
               <Label>Prezzo VAL *</Label>
-              <Input
-                type="number"
-                required
-                value={priceVal}
-                onChange={(e) => setPriceVal(Number(e.target.value))}
-              />
+              <DecimalInputWrapper>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  required
+                  value={priceVal || ''}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (raw === '') {
+                      setPriceVal(0);
+                      return;
+                    }
+                    if (/^\d+$/.test(raw)) setPriceVal(Number(raw));
+                  }}
+                  style={{ paddingRight: '2.25rem' }}
+                />
+                <DecimalSpinner>
+                  <DecimalSpinnerBtn
+                    type="button"
+                    aria-label="Aumenta di 1"
+                    onClick={() => setPriceVal((v) => v + 1)}
+                  >
+                    ▲
+                  </DecimalSpinnerBtn>
+                  <DecimalSpinnerBtn
+                    type="button"
+                    aria-label="Diminuisci di 1"
+                    onClick={() => setPriceVal((v) => Math.max(0, v - 1))}
+                  >
+                    ▼
+                  </DecimalSpinnerBtn>
+                </DecimalSpinner>
+              </DecimalInputWrapper>
             </FormGroup>
           </FormGrid>
 
           <FormGrid $twoCols>
             <FormGroup>
               <Label>Categoria *</Label>
-              <Input
-                type="text"
+              <Select
+                value={isCustomCategory ? '__altra__' : category}
+                onChange={handleCategoryChange}
                 required
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
+              >
+                <option value="">— Seleziona categoria —</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+                <option value="__altra__">Altra (specifica)…</option>
+              </Select>
+              {isCustomCategory && (
+                <Input
+                  type="text"
+                  placeholder="Nome nuova categoria"
+                  required
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  style={{ marginTop: '0.5rem' }}
+                />
+              )}
             </FormGroup>
             <FormGroup>
               <Label>Quantità *</Label>
-              <Input
-                type="number"
-                required
-                value={countInStock}
-                onChange={(e) => setCountInStock(Number(e.target.value))}
-              />
+              <DecimalInputWrapper>
+                <Input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  required
+                  value={countInStock || ''}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    if (raw === '') {
+                      setCountInStock(0);
+                      return;
+                    }
+                    if (/^\d+$/.test(raw)) setCountInStock(Number(raw));
+                  }}
+                  style={{ paddingRight: '2.25rem' }}
+                />
+                <DecimalSpinner>
+                  <DecimalSpinnerBtn
+                    type="button"
+                    aria-label="Aumenta di 1"
+                    onClick={() => setCountInStock((v) => v + 1)}
+                  >
+                    ▲
+                  </DecimalSpinnerBtn>
+                  <DecimalSpinnerBtn
+                    type="button"
+                    aria-label="Diminuisci di 1"
+                    onClick={() => setCountInStock((v) => Math.max(0, v - 1))}
+                  >
+                    ▼
+                  </DecimalSpinnerBtn>
+                </DecimalSpinner>
+              </DecimalInputWrapper>
             </FormGroup>
           </FormGrid>
 
@@ -233,6 +586,47 @@ export default function ProductEditPage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
             />
+          </FormGroup>
+
+          <FormGroup>
+            <Label>Immagini ({images.length})</Label>
+            <ImageGrid>
+              {images.map((url, idx) => (
+                <ImageThumb key={`${url}-${idx}`}>
+                  <Image
+                    src={url}
+                    alt={`Immagine ${idx + 1}`}
+                    fill
+                    sizes="(max-width: 640px) 50vw, 8rem"
+                    style={{ objectFit: 'cover' }}
+                    unoptimized
+                  />
+                  <RemoveImageButton
+                    type="button"
+                    onClick={() => handleImageRemove(idx)}
+                    aria-label={`Rimuovi immagine ${idx + 1}`}
+                  >
+                    ×
+                  </RemoveImageButton>
+                </ImageThumb>
+              ))}
+              <AddImageTile>
+                <span>＋</span>
+                <span>{imageUploading ? 'Caricamento…' : 'Aggiungi'}</span>
+                <HiddenFileInput
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  disabled={imageUploading}
+                  onChange={handleImageUpload}
+                />
+              </AddImageTile>
+            </ImageGrid>
+            {uploadError && (
+              <div style={{ marginTop: '0.5rem' }}>
+                <MessageBox variant="danger">{uploadError}</MessageBox>
+              </div>
+            )}
           </FormGroup>
 
           <ButtonGroup>
