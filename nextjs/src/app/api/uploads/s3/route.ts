@@ -75,8 +75,12 @@ export async function POST(request: NextRequest) {
 
     await s3Client.send(command);
 
-    // Return S3 URL
-    const s3Url = `https://${BUCKET_NAME}.s3.amazonaws.com/${filename}`;
+    // Return region-aware S3 URL. The legacy global-style hostname
+    // (`<bucket>.s3.amazonaws.com`) only resolves cleanly for us-east-1
+    // buckets; for eu-west-3 it either 301-redirects or 403s depending
+    // on the operation.
+    const s3Region = env('AWS_REGION', 'eu-west-3');
+    const s3Url = `https://${BUCKET_NAME}.s3.${s3Region}.amazonaws.com/${filename}`;
 
     return NextResponse.json({
       url: s3Url,
