@@ -3,15 +3,20 @@ import { getServerSession } from 'next-auth';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { authOptions } from '@/lib/auth/config';
 
+// Defensive trim: some env vars were copied into Vercel with trailing
+// whitespace / newlines and the AWS SDK builds the hostname from region,
+// so anything but a bare token breaks the request.
+const env = (key: string, fallback = '') => (process.env[key] ?? fallback).trim();
+
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'eu-west-1',
+  region: env('AWS_REGION', 'eu-west-1'),
   credentials: {
-    accessKeyId: process.env.S3_KEY_ID || '',
-    secretAccessKey: process.env.S3_ACCESS_KEY || '',
+    accessKeyId: env('S3_KEY_ID'),
+    secretAccessKey: env('S3_ACCESS_KEY'),
   },
 });
 
-const BUCKET_NAME = process.env.S3_BUCKET_NAME || 'pagineazzurre2';
+const BUCKET_NAME = env('S3_BUCKET_NAME', 'pagineazzurre2');
 
 // POST /api/uploads/s3 - Upload file to S3
 export async function POST(request: NextRequest) {
