@@ -183,8 +183,8 @@ export default function OrderPage() {
               Controlla la tua email per concordare pagamento e consegna.
             </div>
 
-            {/* Actions for Seller */}
-            {isSeller && !order.isPaid && (
+            {/* Buyer pays — triggers on-chain transfer to escrow */}
+            {!isSeller && !order.isPaid && (
               <button
                 onClick={markAsPaid}
                 disabled={actionLoading}
@@ -192,7 +192,7 @@ export default function OrderPage() {
                   width: '100%',
                   marginBottom: '0.75rem',
                   padding: '0.75rem',
-                  backgroundColor: '#16a34a',
+                  backgroundColor: '#2563eb',
                   color: 'white',
                   fontWeight: '600',
                   borderRadius: '0.5rem',
@@ -201,14 +201,14 @@ export default function OrderPage() {
                   opacity: actionLoading ? 0.5 : 1,
                   transition: 'background-color 0.2s'
                 }}
-                onMouseEnter={(e) => !actionLoading && (e.currentTarget.style.backgroundColor = '#15803d')}
-                onMouseLeave={(e) => !actionLoading && (e.currentTarget.style.backgroundColor = '#16a34a')}
+                onMouseEnter={(e) => !actionLoading && (e.currentTarget.style.backgroundColor = '#1d4ed8')}
+                onMouseLeave={(e) => !actionLoading && (e.currentTarget.style.backgroundColor = '#2563eb')}
               >
-                Segna come Pagato
+                {actionLoading ? 'Trasferimento in corso…' : `Paga ☯ ${order.totalPriceVal} VAL`}
               </button>
             )}
 
-            {/* Actions for Buyer */}
+            {/* Buyer confirms receipt — releases escrow to seller */}
             {!isSeller && order.isPaid && !order.isDelivered && (
               <button
                 onClick={markAsDelivered}
@@ -229,8 +229,20 @@ export default function OrderPage() {
                 onMouseEnter={(e) => !actionLoading && (e.currentTarget.style.backgroundColor = '#15803d')}
                 onMouseLeave={(e) => !actionLoading && (e.currentTarget.style.backgroundColor = '#16a34a')}
               >
-                Segna come Consegnato
+                {actionLoading ? 'Liberazione fondi in corso…' : 'Conferma ricezione e libera fondi'}
               </button>
+            )}
+
+            {/* Status pills for the seller (read-only) */}
+            {isSeller && (
+              <div style={{ marginBottom: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.875rem' }}>
+                <div style={{ color: order.isPaid ? '#15803d' : '#a16207' }}>
+                  {order.isPaid ? '✓ Pagato dal compratore' : '⏳ In attesa di pagamento'}
+                </div>
+                <div style={{ color: order.isDelivered ? '#15803d' : '#6b7280' }}>
+                  {order.isDelivered ? '✓ Ricezione confermata — fondi rilasciati' : '⏳ In attesa di conferma ricezione'}
+                </div>
+              </div>
             )}
 
             <Link

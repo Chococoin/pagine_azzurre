@@ -32,6 +32,33 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // Only the buyer (or an admin) can confirm receipt — confirming
+    // releases the escrowed VLZ to the seller's wallet.
+    if (
+      order.user.toString() !== session.user.id &&
+      !session.user.isAdmin
+    ) {
+      return NextResponse.json(
+        { message: 'Solo il compratore può confermare la ricezione' },
+        { status: 403 }
+      );
+    }
+
+    // Cannot deliver before payment.
+    if (!order.isPaid) {
+      return NextResponse.json(
+        { message: 'L\'ordine deve essere pagato prima di confermare la ricezione' },
+        { status: 400 }
+      );
+    }
+
+    if (order.isDelivered) {
+      return NextResponse.json(
+        { message: 'Ordine già consegnato' },
+        { status: 400 }
+      );
+    }
+
     // Update delivery status
     order.isDelivered = true;
     order.deliveredAt = new Date();

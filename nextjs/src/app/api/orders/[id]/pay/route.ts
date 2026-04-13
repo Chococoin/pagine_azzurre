@@ -32,6 +32,18 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // Only the buyer (or an admin) can pay the order — the on-chain
+    // transfer is signed with the buyer's wallet key.
+    if (
+      order.user.toString() !== session.user.id &&
+      !session.user.isAdmin
+    ) {
+      return NextResponse.json(
+        { message: 'Solo il compratore può pagare questo ordine' },
+        { status: 403 }
+      );
+    }
+
     // Check if already paid
     if (order.isPaid) {
       return NextResponse.json(
@@ -43,8 +55,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const body = await request.json().catch(() => ({}));
     let escrowTxHash: string | undefined;
 
-    // Handle Valazco token payment - automatic transfer to escrow
-    if (order.paymentMethod === 'Valazco') {
+    // Handle Valazco token payment - automatic transfer to escrow.
+    // The frontend payment select uses 'Val' as the value; older code
+    // referenced 'Valazco', so accept both for backward compat.
+    if (order.paymentMethod === 'Val' || order.paymentMethod === 'Valazco') {
       // Get buyer's wallet info
       const buyer = await UserModel.findById(order.user).select('+accountKey');
 
