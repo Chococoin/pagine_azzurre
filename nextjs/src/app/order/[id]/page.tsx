@@ -12,9 +12,6 @@ import type { Order } from '@/types';
 import {
   Container,
   PageTitle,
-  TwoColumnGrid,
-  MainColumn,
-  SideColumn,
   CardBase,
   StickyCard,
   TextLink,
@@ -84,9 +81,9 @@ export default function OrderPage() {
         Ordine <span style={{ color: '#6b7280', fontSize: '1.125rem' }}>#{order._id}</span>
       </PageTitle>
 
-      <TwoColumnGrid style={{ gridTemplateColumns: '1fr', gap: '2rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
         {/* Order Details */}
-        <MainColumn style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {/* Shipping */}
           <CardBase>
             <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#111827', marginBottom: '1rem' }}>Spedizione</h2>
@@ -118,38 +115,51 @@ export default function OrderPage() {
           <CardBase>
             <h2 style={{ fontSize: '1.125rem', fontWeight: '600', color: '#111827', marginBottom: '1rem' }}>Articoli</h2>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', borderTop: '1px solid #f3f4f6' }}>
-              {order.orderItems.map((item) => (
-                <li key={item.product} style={{ padding: '1rem 0', display: 'flex', alignItems: 'center', gap: '1rem', borderBottom: '1px solid #f3f4f6' }}>
-                  <div style={{ position: 'relative', width: '4rem', height: '4rem', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: '#f3f4f6', flexShrink: 0 }}>
-                    <Image
-                      src={item.image || '/img-not-found.png'}
-                      alt={item.name}
-                      fill
-                      style={{ objectFit: 'cover' }}
-                    />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <Link
-                      href={`/product/${item.product}`}
-                      style={{ color: '#111827', fontWeight: '500', textDecoration: 'none' }}
-                      onMouseEnter={(e) => e.currentTarget.style.color = '#2563eb'}
-                      onMouseLeave={(e) => e.currentTarget.style.color = '#111827'}
-                    >
-                      {item.name}
-                    </Link>
-                  </div>
-                  <div style={{ textAlign: 'right', fontSize: '0.875rem' }}>
-                    <p style={{ margin: 0 }}>{item.qty} x ☯{item.priceVal} = ☯{item.qty * item.priceVal}</p>
-                    <p style={{ color: '#6b7280', margin: 0 }}>{item.qty} x €{item.price} = €{(item.qty * item.price).toFixed(2)}</p>
-                  </div>
-                </li>
-              ))}
+              {order.orderItems.map((item) => {
+                const firstImage =
+                  (Array.isArray(item.image) ? item.image[0] : item.image) || '';
+                const imgSrc = firstImage && firstImage.trim() !== '' ? firstImage : '/img-not-found.png';
+                const euroPrice = typeof item.priceEuro === 'number' ? item.priceEuro : null;
+                return (
+                  <li key={String(item.product)} style={{ padding: '1rem 0', display: 'flex', alignItems: 'center', gap: '1rem', borderBottom: '1px solid #f3f4f6' }}>
+                    <div style={{ position: 'relative', width: '4rem', height: '4rem', borderRadius: '0.5rem', overflow: 'hidden', backgroundColor: '#f3f4f6', flexShrink: 0 }}>
+                      <Image
+                        src={imgSrc}
+                        alt={item.name}
+                        fill
+                        sizes="4rem"
+                        style={{ objectFit: 'cover' }}
+                      />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <Link
+                        href={`/product/${item.product}`}
+                        style={{ color: '#111827', fontWeight: '500', textDecoration: 'none' }}
+                        onMouseEnter={(e) => e.currentTarget.style.color = '#2563eb'}
+                        onMouseLeave={(e) => e.currentTarget.style.color = '#111827'}
+                      >
+                        {item.name}
+                      </Link>
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: '0.875rem' }}>
+                      <p style={{ margin: 0 }}>
+                        {item.qty} × ☯{item.priceVal} = ☯{item.qty * item.priceVal}
+                      </p>
+                      {euroPrice !== null && (
+                        <p style={{ color: '#6b7280', margin: 0 }}>
+                          {item.qty} × €{euroPrice.toFixed(2)} = €{(item.qty * euroPrice).toFixed(2)}
+                        </p>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </CardBase>
-        </MainColumn>
+        </div>
 
         {/* Summary */}
-        <SideColumn>
+        <div>
           <StickyCard style={{ boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)' }}>
             <h2 style={{ fontSize: '1.25rem', fontWeight: '600', color: '#111827', marginBottom: '1.5rem' }}>Riepilogo</h2>
 
@@ -244,8 +254,8 @@ export default function OrderPage() {
 
             {actionLoading && <LoadingBox />}
           </StickyCard>
-        </SideColumn>
-      </TwoColumnGrid>
+        </div>
+      </div>
     </Container>
   );
 }

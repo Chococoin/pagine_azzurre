@@ -13,6 +13,12 @@ export function useValazcoBalance(address: `0x${string}` | undefined) {
     args: address ? [address] : undefined,
     query: {
       enabled: !!address && !!contractAddress,
+      // Fail silently if the RPC is unreachable (e.g. when Anvil isn't
+      // running locally). The consumer just sees balance === 0 instead
+      // of the UI crashing or spamming retries in the console.
+      retry: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
     },
   });
 

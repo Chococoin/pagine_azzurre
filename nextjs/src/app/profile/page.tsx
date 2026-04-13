@@ -197,8 +197,11 @@ const AsteriskNote = styled.div`
 `;
 
 const DayPickerWrapper = styled.div`
-  .rdp {
+  /* react-day-picker v9 renders .rdp-root with no padding by default,
+     so the month dropdowns touch the popover edges. Add breathing room. */
+  .rdp-root {
     --rdp-accent-color: #003366;
+    padding: 0.75rem 1rem;
   }
 `;
 

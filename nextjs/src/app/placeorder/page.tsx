@@ -54,14 +54,18 @@ export default function PlaceOrderPage() {
         orderItems: cartItems,
         shippingAddress,
         paymentMethod,
-        itemsPrice: itemsPriceEuro,
+        itemsPriceVal,
+        itemsPriceEuro,
+        totalPriceVal: itemsPriceVal,
+        totalPriceEuro: itemsPriceEuro,
         shippingPrice: 0,
-        taxPrice: 0,
-        totalPrice: itemsPriceEuro,
       });
 
+      // API envelops the order as { message, order } — unwrap so we have
+      // the real Mongo id to route to.
+      const createdId = data?.order?._id ?? data?._id;
       clearCart();
-      router.push(`/order/${data._id}`);
+      router.push(`/order/${createdId}`);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Errore nella creazione dell\'ordine');
     } finally {

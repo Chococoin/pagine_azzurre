@@ -107,15 +107,28 @@ export interface ShippingAddress {
   phone?: string;
 }
 
+/** Shape persisted in Mongo — differs from CartItem: image is an array
+ *  and the euro amount is stored as priceEuro, not price. */
+export interface OrderItem {
+  product: string;
+  name: string;
+  image: string[];
+  priceVal: number;
+  priceEuro?: number;
+  qty: number;
+  seller?: string;
+}
+
 export interface Order {
   _id: string;
-  orderItems: CartItem[];
+  orderItems: OrderItem[];
   shippingAddress: ShippingAddress;
   paymentMethod: string;
-  itemsPrice: number;
+  itemsPriceVal: number;
+  itemsPriceEuro?: number;
+  totalPriceVal: number;
+  totalPriceEuro?: number;
   shippingPrice: number;
-  taxPrice: number;
-  totalPrice: number;
   user: string | User;
   seller?: string;
   isPaid: boolean;
@@ -154,7 +167,7 @@ export interface RegisterData {
   phone?: string;
   cf?: string;
   sellername?: string;
-  referer?: string;
+  referer?: string[];
   newsletter?: boolean;
 }
 

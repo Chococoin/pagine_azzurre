@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import styled from 'styled-components';
-import { useUserStore } from '@/lib/store/user';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import { FlexCenter, PrimaryButton } from '@/lib/styles';
@@ -58,7 +57,6 @@ const Description = styled.p`
 export default function VerificationLinkPage() {
   const params = useParams();
   const router = useRouter();
-  const { setUserInfo } = useUserStore();
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
@@ -100,21 +98,6 @@ export default function VerificationLinkPage() {
           setStatus('success');
           setUserName(data.user?.username || '');
           setMessage('Il tuo account è stato verificato con successo!');
-
-          // Mirror to legacy Zustand store for components still reading it
-          if (data.user) {
-            setUserInfo({
-              _id: data.user._id,
-              username: data.user.username,
-              email: data.user.email,
-              isAdmin: data.user.isAdmin || false,
-              isSeller: data.user.isSeller || false,
-              account: data.user.account || '',
-              hasAd: data.user.hasAd || false,
-              token: data.user.token || '',
-              verified: true,
-            });
-          }
 
           // Exchange the one-shot loginToken for a real NextAuth session.
           // The verification-autologin provider clears the token atomically
@@ -164,7 +147,7 @@ export default function VerificationLinkPage() {
       isCancelled = true;
       abortController.abort();
     };
-  }, [params.id, router, setUserInfo]);
+  }, [params.id, router]);
 
   return (
     <VerificationContainer>

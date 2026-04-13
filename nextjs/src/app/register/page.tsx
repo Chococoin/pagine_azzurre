@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import styled from 'styled-components';
-import { useUserStore } from '@/lib/store/user';
+import { register as registerApi } from '@/lib/api/users';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import { FormGroup, Label, Input, PrimaryButton } from '@/lib/styles';
@@ -191,7 +191,8 @@ function RegisterContent() {
   const redirect = searchParams.get('redirect') || '/';
   const { data: session, status } = useSession();
 
-  const { loading, error, register, clearError } = useUserStore();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -200,10 +201,6 @@ function RegisterContent() {
       router.push(redirect);
     }
   }, [session, status, redirect, router]);
-
-  useEffect(() => {
-    clearError();
-  }, [clearError]);
 
   const addReferer = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -237,20 +234,28 @@ function RegisterContent() {
     }
 
     try {
-      await register({
+      setLoading(true);
+      setError(null);
+      await registerApi({
         username,
         email,
         password,
         phone: username,
-        cf: email.split('').map(c => c.charCodeAt(0)).join(''),
+        cf: email.split('').map((c) => c.charCodeAt(0)).join(''),
         sellername: username,
         referer,
         newsletter,
       });
       // Registration successful - redirect to verification page
       router.push('/verification');
-    } catch {
-      // Error is handled by the store
+    } catch (e: unknown) {
+      const message =
+        typeof e === 'object' && e !== null && 'response' in e
+          ? (e as { response?: { data?: { message?: string } } }).response?.data?.message
+          : undefined;
+      setError(message || 'Errore durante la registrazione');
+    } finally {
+      setLoading(false);
     }
   };
 
