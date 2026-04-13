@@ -1,8 +1,13 @@
 import { createWalletClient, createPublicClient, http, parseAbi, defineChain } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 
-const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545';
-const CHAIN_ID = Number(process.env.NEXT_PUBLIC_CHAIN_ID || 31337);
+// Defensive trim: env vars copied into Vercel via stdin pipes have
+// historically arrived with trailing newlines. viem's URL parser and the
+// 0x address validator both reject anything that isn't a clean token.
+const env = (key: string, fallback = '') => (process.env[key] ?? fallback).trim();
+
+const RPC_URL = env('NEXT_PUBLIC_RPC_URL', 'http://localhost:8545');
+const CHAIN_ID = Number(env('NEXT_PUBLIC_CHAIN_ID', '31337'));
 
 const customChain = defineChain({
   id: CHAIN_ID,
@@ -10,9 +15,15 @@ const customChain = defineChain({
   nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
   rpcUrls: { default: { http: [RPC_URL] } },
 });
-const CONTRACT_ADDRESS = (process.env.NEXT_PUBLIC_TOKEN_CONTRACT_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3') as `0x${string}`;
-const ADMIN_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY as `0x${string}`;
-const ADMIN_WALLET_ADDRESS = (process.env.ADMIN_WALLET_ADDRESS || '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266') as `0x${string}`;
+const CONTRACT_ADDRESS = env(
+  'NEXT_PUBLIC_TOKEN_CONTRACT_ADDRESS',
+  '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+) as `0x${string}`;
+const ADMIN_PRIVATE_KEY = env('ADMIN_PRIVATE_KEY') as `0x${string}`;
+const ADMIN_WALLET_ADDRESS = env(
+  'ADMIN_WALLET_ADDRESS',
+  '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266'
+) as `0x${string}`;
 
 // Valazco Token ABI
 const VALAZCO_ABI = parseAbi([

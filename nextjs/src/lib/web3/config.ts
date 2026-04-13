@@ -13,13 +13,22 @@ const anvil: Chain = {
   },
 };
 
+// Defensive trim — see comment in lib/services/blockchain.ts. NEXT_PUBLIC_*
+// values are inlined at build time, but the .trim() call still runs on
+// the inlined string literal so trailing whitespace from Vercel envs is
+// stripped on both server and client.
+const env = (key: string, fallback = '') => (process.env[key] ?? fallback).trim();
+
 // Default chain configuration (from env or default to local)
-export const CHAIN_ID = parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || '31337');
-export const RPC_URL = process.env.NEXT_PUBLIC_RPC_URL || 'http://localhost:8545';
+export const CHAIN_ID = parseInt(env('NEXT_PUBLIC_CHAIN_ID', '31337'));
+export const RPC_URL = env('NEXT_PUBLIC_RPC_URL', 'http://localhost:8545');
 
 // Contract addresses by chain ID
 export const CONTRACT_ADDRESSES: Record<number, `0x${string}`> = {
-  31337: (process.env.NEXT_PUBLIC_TOKEN_CONTRACT_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3') as `0x${string}`, // Local Anvil
+  31337: env(
+    'NEXT_PUBLIC_TOKEN_CONTRACT_ADDRESS',
+    '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+  ) as `0x${string}`, // Local Anvil
   5: '0xc2C3CC7Eb9647E82e134F3a6f73120e1bDFA38c0', // Goerli (deprecated)
   11155111: '0x0000000000000000000000000000000000000000', // Sepolia (to be deployed)
 };
