@@ -6,6 +6,8 @@ export interface ProductFilters {
   category?: string;
   section?: string;
   seller?: string;
+  city?: string;
+  referer?: string;
   min?: number;
   max?: number;
   rating?: number;
@@ -22,6 +24,8 @@ export async function getProducts(filters?: ProductFilters): Promise<ProductList
   if (filters?.category) params.append('category', filters.category);
   if (filters?.section) params.append('section', filters.section);
   if (filters?.seller) params.append('seller', filters.seller);
+  if (filters?.city) params.append('city', filters.city);
+  if (filters?.referer) params.append('referer', filters.referer);
   if (filters?.min !== undefined) params.append('min', filters.min.toString());
   if (filters?.max !== undefined) params.append('max', filters.max.toString());
   if (filters?.rating) params.append('rating', filters.rating.toString());
@@ -30,6 +34,12 @@ export async function getProducts(filters?: ProductFilters): Promise<ProductList
   if (filters?.pageSize) params.append('pageSize', filters.pageSize.toString());
 
   const response = await apiClient.get(`/products?${params.toString()}`);
+  return response.data;
+}
+
+// Get distinct list of user-declared groups/organizations (for search filter).
+export async function getReferers(): Promise<string[]> {
+  const response = await apiClient.get('/users/referers');
   return response.data;
 }
 

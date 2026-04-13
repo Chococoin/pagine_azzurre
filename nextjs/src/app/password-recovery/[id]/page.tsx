@@ -6,6 +6,7 @@ import Link from 'next/link';
 import styled from 'styled-components';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
+import PasswordInput from '@/components/ui/PasswordInput';
 import { FlexCenter, FormGroup, Label, Input, PrimaryButton } from '@/lib/styles';
 
 const PageContainer = styled(FlexCenter)`
@@ -166,8 +167,7 @@ export default function PasswordResetPage() {
         <FormFields>
           <FormGroup>
             <Label htmlFor="password">Nuova Password</Label>
-            <Input
-              type="password"
+            <PasswordInput
               id="password"
               placeholder="Inserisci la nuova password (min. 6 caratteri)"
               required
@@ -178,8 +178,7 @@ export default function PasswordResetPage() {
 
           <FormGroup>
             <Label htmlFor="confirmPassword">Conferma Password</Label>
-            <Input
-              type="password"
+            <PasswordInput
               id="confirmPassword"
               placeholder="Conferma la nuova password"
               required

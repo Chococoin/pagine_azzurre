@@ -16,6 +16,7 @@ import { ConnectWallet } from '@/components/web3/ConnectWallet';
 import citiesOptions, { CityOption } from '@/lib/resources/citiesOptions';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
+import PasswordInput from '@/components/ui/PasswordInput';
 import type { User } from '@/types';
 
 const FormContainer = styled.div`
@@ -871,8 +872,7 @@ export default function ProfilePage() {
 
                 <FormGroup>
                   <Label>Cambiare Password</Label>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     placeholder="Digita nuova password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -881,8 +881,7 @@ export default function ProfilePage() {
 
                 <FormGroup>
                   <Label>Conferma Password</Label>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     placeholder="Inserire conferma di password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}

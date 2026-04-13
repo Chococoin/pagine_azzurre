@@ -62,6 +62,7 @@ export interface Product {
   state?: string;
   city?: string;
   municipality?: string;
+  referer?: string;
   seller: {
     _id: string;
     seller: {

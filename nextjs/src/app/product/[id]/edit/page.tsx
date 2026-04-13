@@ -6,6 +6,8 @@ import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import styled from 'styled-components';
 import { getProduct, getProductCategories, updateProduct } from '@/lib/api/products';
+import { getUserDetails } from '@/lib/api/users';
+import { citiesList } from '@/lib/utils/cities';
 
 // Default placeholder images set by the API on creation / save when no
 // real image is provided. They should not appear in the seller gallery —
@@ -33,7 +35,8 @@ import {
   Input,
   Select,
   Textarea,
-  LoadingContainer
+  LoadingContainer,
+  FilterButton,
 } from '@/lib/styles';
 
 // Styled Components
@@ -203,6 +206,33 @@ const DecimalSpinnerBtn = styled.button`
   }
 `;
 
+const SectionButtonsRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+
+  /* Smaller, tighter pills on mobile */
+  @media (max-width: 640px) {
+    gap: 0.35rem;
+
+    & > button {
+      padding: 0.35rem 0.65rem !important;
+      font-size: 0.7rem !important;
+    }
+  }
+`;
+
+type SectionValue = 'offro' | 'cerco' | 'propongo' | 'avviso' | 'dono';
+
+const SECTION_BUTTONS: { value: SectionValue; lines: [string, string] }[] = [
+  { value: 'offro', lines: ['Vendo', 'Offro'] },
+  { value: 'cerco', lines: ['Cerco', 'Mi serve'] },
+  { value: 'propongo', lines: ['Proposte', 'Partnership'] },
+  { value: 'avviso', lines: ['Avvisi', 'Eventi'] },
+  { value: 'dono', lines: ['Dono', 'Tempo'] },
+];
+
 export default function ProductEditPage() {
   const params = useParams();
   const router = useRouter();
@@ -222,6 +252,10 @@ export default function ProductEditPage() {
   const [section, setSection] = useState<'offro' | 'cerco' | 'propongo' | 'avviso' | 'dono'>('offro');
   const [isService, setIsService] = useState(false);
   const [images, setImages] = useState<string[]>([]);
+  const [city, setCity] = useState('');
+  const [referer, setReferer] = useState('');
+  const [userCity, setUserCity] = useState('');
+  const [userReferers, setUserReferers] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [updateLoading, setUpdateLoading] = useState(false);
@@ -242,6 +276,16 @@ export default function ProductEditPage() {
     getProductCategories()
       .then((cats) => setCategories(cats))
       .catch((err) => console.error('Failed to load categories', err));
+    // Fire-and-forget: load the seller's own profile to prefill defaults
+    // (city, referer) and constrain the Gruppo dropdown to their groups.
+    if (userInfo?.id) {
+      getUserDetails(userInfo.id)
+        .then((u) => {
+          setUserCity(u.city ?? '');
+          setUserReferers(Array.isArray(u.referer) ? u.referer : []);
+        })
+        .catch(() => {});
+    }
     // IMPORTANT: keep this dep array minimal. useSession() can return a
     // new session.user reference on every render, and if userInfo were
     // in the deps the effect would re-fire → fetchProduct() would
@@ -263,6 +307,10 @@ export default function ProductEditPage() {
       setDescription(product.description ?? '');
       setSection(product.section ?? 'offro');
       setIsService(product.isService ?? false);
+      // Strip the legacy '_' placeholder so the Città input starts empty
+      // (and gets prefilled with the seller's own city by the effect below).
+      setCity(product.city && product.city !== '_' ? product.city : '');
+      setReferer(product.referer ?? '');
       // Strip placeholder defaults so the gallery starts empty when the
       // product only has the auto-assigned default image.
       setImages(
@@ -287,6 +335,16 @@ export default function ProductEditPage() {
       }
     }
   }, [loading, categories, category]);
+
+  // Prefill Città with the seller's own city when the product doesn't carry
+  // one yet (legacy '_' or empty). Only runs if the field is still empty so
+  // it never overrides a value the seller just typed.
+  useEffect(() => {
+    if (!loading && !city && userCity) {
+      setCity(userCity);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, userCity]);
 
   const handleCategoryChange = (e: ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
@@ -367,6 +425,8 @@ export default function ProductEditPage() {
         section,
         isService,
         image: images,
+        city,
+        referer,
       });
       setSuccess(true);
       setTimeout(() => router.push('/productlist'), 1500);
@@ -382,7 +442,7 @@ export default function ProductEditPage() {
 
   return (
     <Container style={{ maxWidth: '42rem', padding: '2rem 1rem' }}>
-      <PageTitle>Inserisci / modifica annuncio</PageTitle>
+      <PageTitle>Inserisci / Modifica Annuncio</PageTitle>
 
       <FormCard>
         {error && <MessageBox variant="danger">{error}</MessageBox>}
@@ -465,31 +525,108 @@ export default function ProductEditPage() {
             </FormGroup>
           </FormGrid>
 
-          <FormGrid $twoCols>
-            <FormGroup>
-              <Label>Sezione</Label>
-              <Select
-                value={section}
-                onChange={(e) => setSection(e.target.value as typeof section)}
-              >
-                <option value="offro">Vendo / Offro</option>
-                <option value="cerco">Cerco / Mi serve</option>
-                <option value="propongo">Proposte / Partnership</option>
-                <option value="avviso">Avvisi / Eventi</option>
-                <option value="dono">Dono / Tempo</option>
-              </Select>
-            </FormGroup>
-            <FormGroup style={{ display: 'flex', alignItems: 'center' }}>
+          <FormGroup>
+            <Label>Sezione</Label>
+            <SectionButtonsRow>
+              {SECTION_BUTTONS.map((btn) => (
+                <FilterButton
+                  key={btn.value}
+                  type="button"
+                  onClick={() => setSection(btn.value)}
+                  $isActive={section === btn.value}
+                  style={{
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    lineHeight: 1.1,
+                    padding: '0.45rem 0.9rem',
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  <span>{btn.lines[0]}</span>
+                  <span>{btn.lines[1]}</span>
+                </FilterButton>
+              ))}
+            </SectionButtonsRow>
+          </FormGroup>
+
+          {(section === 'offro' || section === 'cerco') && (
+            <FormGroup
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: '1.5rem',
+              }}
+            >
               <CheckboxLabel>
                 <Checkbox
-                  type="checkbox"
-                  checked={isService}
-                  onChange={(e) => setIsService(e.target.checked)}
+                  type="radio"
+                  name="isServiceRadio"
+                  checked={!isService}
+                  onChange={() => setIsService(false)}
                 />
                 <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-                  È un servizio
+                  Prodotto
                 </span>
               </CheckboxLabel>
+              <CheckboxLabel>
+                <Checkbox
+                  type="radio"
+                  name="isServiceRadio"
+                  checked={isService}
+                  onChange={() => setIsService(true)}
+                />
+                <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
+                  Servizio
+                </span>
+              </CheckboxLabel>
+            </FormGroup>
+          )}
+
+          <FormGrid $twoCols>
+            <FormGroup>
+              <Label>Città</Label>
+              <Input
+                type="text"
+                list="edit-city-options"
+                placeholder="Es. Torino, Roma…"
+                value={city}
+                onChange={(e) => setCity(e.target.value.toUpperCase())}
+              />
+              <datalist id="edit-city-options">
+                {citiesList.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </FormGroup>
+            <FormGroup>
+              <Label>Gruppo</Label>
+              <Input
+                type="text"
+                list="edit-referer-options"
+                placeholder={
+                  userReferers.length ? userReferers[0] : 'Nessun gruppo'
+                }
+                value={referer}
+                onChange={(e) => setReferer(e.target.value.toUpperCase())}
+              />
+              <datalist id="edit-referer-options">
+                {userReferers.map((r) => (
+                  <option key={r} value={r} />
+                ))}
+              </datalist>
+              <small
+                style={{
+                  fontSize: '0.75rem',
+                  color: '#6b7280',
+                  marginTop: '0.25rem',
+                  display: 'block',
+                }}
+              >
+                Scegli uno dei gruppi dichiarati in registrazione. Per
+                aggiungerne altri, modifica il tuo profilo.
+              </small>
             </FormGroup>
           </FormGrid>
 

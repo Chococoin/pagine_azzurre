@@ -36,6 +36,7 @@ export interface Product {
   state?: string;
   city: string;
   municipality?: string;
+  referer?: string;
   reviews: Review[];
   createdAt: Date;
   updatedAt: Date;
@@ -97,10 +98,23 @@ const productSchema = new Schema<ProductDocument>(
     state: { type: String, required: false },
     city: { type: String, required: true, default: '_', uppercase: true },
     municipality: { type: String, required: false },
+    referer: { type: String, required: false, uppercase: true },
     reviews: [reviewSchema],
   },
   {
     timestamps: true,
+  }
+);
+
+// Full-text search index on name (heavier weight) + description, italian
+// stemming. MongoDB allows only one text index per collection; if another
+// text index is ever needed, this one must be replaced rather than stacked.
+productSchema.index(
+  { name: 'text', description: 'text' },
+  {
+    weights: { name: 10, description: 1 },
+    default_language: 'italian',
+    name: 'product_fulltext',
   }
 );
 

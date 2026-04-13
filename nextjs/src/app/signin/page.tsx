@@ -6,6 +6,7 @@ import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import styled from 'styled-components';
 import LoadingBox from '@/components/ui/LoadingBox';
+import PasswordInput from '@/components/ui/PasswordInput';
 import MessageBox from '@/components/ui/MessageBox';
 import { FormGroup, Label, Input, PrimaryButton } from '@/lib/styles';
 
@@ -75,9 +76,16 @@ const StyledLink = styled(Link)`
   }
 `;
 
+// Dev-only autofill. `process.env.NODE_ENV` is inlined at build time by Next.js,
+// so this entire block is tree-shaken out of production bundles.
+const DEV_AUTOFILL =
+  process.env.NODE_ENV === 'development'
+    ? { email: 'buyertest@mailsac.com', password: 'devpass123' }
+    : null;
+
 function SigninContent() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(DEV_AUTOFILL?.email ?? '');
+  const [password, setPassword] = useState(DEV_AUTOFILL?.password ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -121,6 +129,21 @@ function SigninContent() {
             <Subtitle>Benvenuto su Pagine Azzurre</Subtitle>
           </FormHeader>
 
+          {DEV_AUTOFILL && (
+            <div
+              style={{
+                fontSize: '0.75rem',
+                color: '#92400e',
+                background: '#fef3c7',
+                border: '1px solid #fde68a',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '0.375rem',
+                marginBottom: '0.75rem',
+              }}
+            >
+              DEV: credenziali precompilate ({DEV_AUTOFILL.email})
+            </div>
+          )}
           {loading && <LoadingBox />}
           {error && <MessageBox variant="danger">{error}</MessageBox>}
 
@@ -139,8 +162,7 @@ function SigninContent() {
 
             <FormGroup>
               <Label htmlFor="password">Password</Label>
-              <Input
-                type="password"
+              <PasswordInput
                 id="password"
                 placeholder="Inserisci la tua password"
                 required

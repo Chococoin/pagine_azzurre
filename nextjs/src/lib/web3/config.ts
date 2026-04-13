@@ -2,17 +2,6 @@ import { createPublicClient, http } from 'viem';
 import { goerli, sepolia, mainnet, localhost } from 'viem/chains';
 import type { Chain } from 'viem';
 
-// Local Anvil chain configuration
-const anvil: Chain = {
-  ...localhost,
-  id: 31337,
-  name: 'Anvil',
-  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-  rpcUrls: {
-    default: { http: ['http://localhost:8545'] },
-  },
-};
-
 // Defensive trim — see comment in lib/services/blockchain.ts. NEXT_PUBLIC_*
 // values are inlined at build time, but the .trim() call still runs on
 // the inlined string literal so trailing whitespace from Vercel envs is
@@ -22,6 +11,20 @@ const env = (key: string, fallback = '') => (process.env[key] ?? fallback).trim(
 // Default chain configuration (from env or default to local)
 export const CHAIN_ID = parseInt(env('NEXT_PUBLIC_CHAIN_ID', '31337'));
 export const RPC_URL = env('NEXT_PUBLIC_RPC_URL', 'http://localhost:8545');
+
+// Anvil-compatible chain (local or remote fly.dev deployment).
+// `rpcUrls.default.http` uses the env-configured URL so that any consumer
+// that reads `chain.rpcUrls` (wagmi, viem fallbacks) also hits the right
+// endpoint — otherwise the browser would try http://localhost:8545.
+const anvil: Chain = {
+  ...localhost,
+  id: 31337,
+  name: 'Anvil',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: { http: [RPC_URL] },
+  },
+};
 
 // Contract addresses by chain ID
 export const CONTRACT_ADDRESSES: Record<number, `0x${string}`> = {

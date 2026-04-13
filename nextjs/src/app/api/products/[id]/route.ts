@@ -121,6 +121,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     product.state = body.state ?? product.state;
     product.city = body.city ?? product.city;
     product.municipality = body.municipality ?? product.municipality;
+    product.referer = body.referer ?? product.referer;
 
     const updatedProduct = await product.save();
 

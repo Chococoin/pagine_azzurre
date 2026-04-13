@@ -22,33 +22,40 @@ export async function GET(request: NextRequest) {
     const min = Number(searchParams.get('min')) || 0;
     const max = Number(searchParams.get('max')) || 0;
     const rating = Number(searchParams.get('rating')) || 0;
+    const cityParam = (searchParams.get('city') || '').toUpperCase();
+    const refererParam = (searchParams.get('referer') || '').toUpperCase();
 
-    // Extract city from search query
-    const { city, cleanQuery } = extractCity(name);
+    // Effective city: explicit param wins; otherwise try extracting a known
+    // Italian city name from the free-text `name` query (legacy behavior).
+    const { city: extractedCity, cleanQuery } = extractCity(name);
+    const effectiveCity = cityParam || extractedCity || '';
 
-    // Build filters
+    // Text search: use MongoDB $text (index: product_fulltext on name+description).
     // Public listings hide draft products that still carry the auto-assigned
     // "Annunciø n° …" placeholder name. Seller dashboards (filter by seller)
     // must still show their own drafts so they can finish editing them.
-    const nameFilter = name
-      ? { name: { $regex: cleanQuery.trim(), $options: 'i' } }
+    const trimmedQuery = cleanQuery.trim();
+    const textFilter = trimmedQuery
+      ? { $text: { $search: trimmedQuery } }
       : seller
         ? {}
         : { name: { $not: { $regex: 'Annunciø' } } };
 
-    const literalFilter = name
-      ? { name: { $regex: name, $options: 'i' } }
-      : {};
+    // Referer (group) filter: now stored directly on the product document
+    // (backfilled from seller.referer[0]) so the filter is a plain field
+    // match — no User lookup needed.
+    const refererFilter = refererParam ? { referer: refererParam } : {};
 
     const sellerFilter = seller ? { seller } : {};
     const sectionFilter = section ? { section } : {};
     const categoryFilter = category ? { category: category.toUpperCase() } : {};
     const priceFilter = min && max ? { priceVal: { $gte: min, $lte: max } } : {};
-    const ratingFilter = rating ? { rating: { $gte: rating } } : {};
-    const cityFilter = city ? { city } : {};
+    const ratingFilterQ = rating ? { rating: { $gte: rating } } : {};
+    const cityFilter = effectiveCity ? { city: effectiveCity } : {};
 
-    // Sort order
-    type SortOrder = { [key: string]: 1 | -1 };
+    // Sort order — when doing a text search with no explicit order, sort
+    // by textScore descending so more relevant hits come first.
+    type SortOrder = { [key: string]: 1 | -1 | { $meta: 'textScore' } };
     let sortOrder: SortOrder;
     switch (order) {
       case 'lowest':
@@ -61,67 +68,40 @@ export async function GET(request: NextRequest) {
         sortOrder = { rating: -1 };
         break;
       default:
-        sortOrder = { _id: -1 };
+        sortOrder = trimmedQuery
+          ? { score: { $meta: 'textScore' } }
+          : { _id: -1 };
     }
 
-    // Build query
+    // Build query — note: refererFilter may contain `seller: {$in:[]}`,
+    // which correctly returns zero products when the group has no members.
+    // Explicit `seller` param takes precedence (e.g., seller dashboards).
     const query = {
+      ...refererFilter,
       ...sellerFilter,
       ...sectionFilter,
-      ...nameFilter,
+      ...textFilter,
       ...categoryFilter,
       ...priceFilter,
-      ...ratingFilter,
+      ...ratingFilterQ,
+      ...cityFilter,
       pause: { $ne: true },
     };
 
     // Count total documents
     const count = await ProductModel.countDocuments(query);
 
+    // Project textScore when doing text search so we can sort by relevance.
+    const projection = trimmedQuery
+      ? { score: { $meta: 'textScore' } }
+      : undefined;
+
     // Find products
-    let products = await ProductModel.find(query)
+    const products = await ProductModel.find(query, projection)
       .populate('seller', 'seller.name seller.logo')
       .sort(sortOrder)
       .skip(pageSize * (page - 1))
       .limit(pageSize);
-
-    // If searching with city, filter results
-    if (name && city) {
-      const literalProducts = await ProductModel.find({
-        ...sellerFilter,
-        ...literalFilter,
-        ...categoryFilter,
-        ...priceFilter,
-        ...ratingFilter,
-      })
-        .populate('seller', 'seller.name seller.logo')
-        .sort(sortOrder)
-        .skip(pageSize * (page - 1))
-        .limit(pageSize);
-
-      // Filter products by city
-      const filteredIds = new Set<string>();
-      const cityFilteredProducts = products.filter((product) => {
-        if (product.city === city) {
-          return true;
-        }
-        return false;
-      });
-
-      // Add literal matches that weren't in city-filtered results
-      for (const literalProduct of literalProducts) {
-        const productId = literalProduct._id.toString();
-        const existsInFiltered = cityFilteredProducts.some(
-          (p) => p._id.toString() === productId
-        );
-        if (!existsInFiltered && !filteredIds.has(productId)) {
-          cityFilteredProducts.unshift(literalProduct);
-          filteredIds.add(productId);
-        }
-      }
-
-      products = cityFilteredProducts;
-    }
 
     return NextResponse.json({
       products,
@@ -155,6 +135,19 @@ export async function POST() {
 
     await connectDB();
 
+    // Prefill city + referer from the seller's own profile so newly-created
+    // ads are immediately discoverable via the search filters. The seller
+    // can override both in the edit form.
+    const sellerDoc = await UserModel.findById(session.user.id, {
+      city: 1,
+      referer: 1,
+    }).lean<{ city?: string; referer?: string[] }>();
+
+    const defaultReferer =
+      Array.isArray(sellerDoc?.referer) && sellerDoc.referer.length
+        ? sellerDoc.referer[0]
+        : undefined;
+
     // Create product with default values
     const product = new ProductModel({
       name: 'Annunciø n° ' + Date.now(),
@@ -163,6 +156,8 @@ export async function POST() {
       rating: 0,
       isService: false,
       numReviews: 0,
+      city: sellerDoc?.city || '_',
+      referer: defaultReferer,
     });
 
     const createdProduct = await product.save();

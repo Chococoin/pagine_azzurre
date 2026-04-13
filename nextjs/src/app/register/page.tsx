@@ -8,6 +8,7 @@ import styled from 'styled-components';
 import { register as registerApi } from '@/lib/api/users';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
+import PasswordInput from '@/components/ui/PasswordInput';
 import { FormGroup, Label, Input, PrimaryButton } from '@/lib/styles';
 
 const PageWrapper = styled.div`
@@ -312,8 +313,7 @@ function RegisterContent() {
 
             <FormGroup>
               <Label htmlFor="password">Password *</Label>
-              <Input
-                type="password"
+              <PasswordInput
                 id="password"
                 placeholder="Inserisci la password (min. 6 caratteri)"
                 required
@@ -324,8 +324,7 @@ function RegisterContent() {
 
             <FormGroup>
               <Label htmlFor="confirmPassword">Conferma Password *</Label>
-              <Input
-                type="password"
+              <PasswordInput
                 id="confirmPassword"
                 placeholder="Conferma la password"
                 required

@@ -4,18 +4,20 @@ import { useState, useEffect, Suspense } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import styled from 'styled-components';
-import { getProducts, getProductCategories, type ProductFilters } from '@/lib/api/products';
+import { getProducts, getProductCategories, getReferers, type ProductFilters } from '@/lib/api/products';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import Product from '@/components/ui/Product';
 import Rating from '@/components/ui/Rating';
 import Pagination from '@/components/ui/Pagination';
 import { prices, ratings } from '@/lib/utils/constants';
+import { citiesList } from '@/lib/utils/cities';
 import {
   Container,
   CardBase,
   StickyCard,
   Select,
+  Input,
   GridContainer,
   LoadingContainer,
   ErrorContainer,
@@ -89,6 +91,36 @@ const FilterTitle = styled.h3`
   margin-bottom: 0.75rem;
 `;
 
+const CollapsibleTitle = styled.button`
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.75rem;
+  cursor: pointer;
+
+  &:hover {
+    color: #2563eb;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+  }
+`;
+
+const Chevron = styled.span<{ $open: boolean }>`
+  display: inline-block;
+  font-size: 0.75rem;
+  transition: transform 0.15s ease;
+  transform: rotate(${({ $open }) => ($open ? '0deg' : '-90deg')});
+`;
+
 const FilterList = styled.ul`
   list-style: none;
   padding: 0;
@@ -137,6 +169,8 @@ function SearchContent() {
 
   const name = getParamValue('name') || searchParams.get('name') || '';
   const category = getParamValue('category') || '';
+  const city = getParamValue('city') || '';
+  const referer = getParamValue('referer') || '';
   const min = Number(getParamValue('min')) || 0;
   const max = Number(getParamValue('max')) || 0;
   const ratingFilter = Number(getParamValue('rating')) || 0;
@@ -153,13 +187,28 @@ function SearchContent() {
   const [categories, setCategories] = useState<string[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
+  const [referers, setReferers] = useState<string[]>([]);
+  const [cityDraft, setCityDraft] = useState(city);
+  const [refererDraft, setRefererDraft] = useState(referer);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
+
   useEffect(() => {
     fetchCategories();
+    getReferers().then(setReferers).catch(() => {});
   }, []);
+
+  // Re-sync drafts when URL params change (back/forward, external links).
+  useEffect(() => {
+    setCityDraft(city);
+  }, [city]);
+  useEffect(() => {
+    setRefererDraft(referer);
+  }, [referer]);
 
   useEffect(() => {
     fetchProducts();
-  }, [name, category, min, max, ratingFilter, order, pageNumber]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [name, category, city, referer, min, max, ratingFilter, order, pageNumber]);
 
   const fetchCategories = async () => {
     try {
@@ -178,6 +227,8 @@ function SearchContent() {
       const data = await getProducts({
         name: name || undefined,
         category: category || undefined,
+        city: city || undefined,
+        referer: referer || undefined,
         min: min || undefined,
         max: max || undefined,
         rating: ratingFilter || undefined,
@@ -197,6 +248,8 @@ function SearchContent() {
   const buildFilterUrl = (filter: Partial<{
     name: string;
     category: string;
+    city: string;
+    referer: string;
     min: number;
     max: number;
     rating: number;
@@ -205,6 +258,8 @@ function SearchContent() {
   }>) => {
     const newName = filter.name ?? name;
     const newCategory = filter.category ?? category;
+    const newCity = filter.city ?? city;
+    const newReferer = filter.referer ?? referer;
     const newMin = filter.min ?? min;
     const newMax = filter.max ?? max;
     const newRating = filter.rating ?? ratingFilter;
@@ -214,12 +269,28 @@ function SearchContent() {
     let url = '/search';
     if (newCategory) url += `/category/${encodeURIComponent(newCategory)}`;
     if (newName) url += `/name/${encodeURIComponent(newName)}`;
+    if (newCity) url += `/city/${encodeURIComponent(newCity)}`;
+    if (newReferer) url += `/referer/${encodeURIComponent(newReferer)}`;
     if (newMin || newMax) url += `/min/${newMin}/max/${newMax}`;
     if (newRating) url += `/rating/${newRating}`;
     url += `/order/${newOrder}`;
     url += `/pageNumber/${newPage}`;
 
     return url;
+  };
+
+  const commitCity = () => {
+    const next = cityDraft.trim().toUpperCase();
+    if (next !== city) {
+      router.push(buildFilterUrl({ city: next, page: 1 }));
+    }
+  };
+
+  const commitReferer = () => {
+    const next = refererDraft.trim();
+    if (next !== referer) {
+      router.push(buildFilterUrl({ referer: next, page: 1 }));
+    }
   };
 
   return (
@@ -255,33 +326,89 @@ function SearchContent() {
         {/* Filters Sidebar */}
         <Sidebar>
           <SidebarCard>
-            {/* Categories */}
+            {/* Categories (collapsible) */}
             <FilterSection>
-              <FilterTitle>Categorie</FilterTitle>
-              {categoriesLoading ? (
-                <LoadingBox />
-              ) : (
-                <FilterList>
-                  <FilterItem>
-                    <FilterLink
-                      href={buildFilterUrl({ category: '', page: 1 })}
-                      $active={!category}
-                    >
-                      Tutte le categorie
-                    </FilterLink>
-                  </FilterItem>
-                  {categories.map((c) => (
-                    <FilterItem key={c}>
+              <CollapsibleTitle
+                type="button"
+                onClick={() => setCategoriesOpen((v) => !v)}
+                aria-expanded={categoriesOpen}
+              >
+                <span>Categorie{category ? `: ${category}` : ''}</span>
+                <Chevron $open={categoriesOpen}>▼</Chevron>
+              </CollapsibleTitle>
+              {categoriesOpen &&
+                (categoriesLoading ? (
+                  <LoadingBox />
+                ) : (
+                  <FilterList>
+                    <FilterItem>
                       <FilterLink
-                        href={buildFilterUrl({ category: c, page: 1 })}
-                        $active={c === category}
+                        href={buildFilterUrl({ category: '', page: 1 })}
+                        $active={!category}
                       >
-                        {c.charAt(0).toUpperCase() + c.slice(1).toLowerCase()}
+                        Tutte le categorie
                       </FilterLink>
                     </FilterItem>
-                  ))}
-                </FilterList>
-              )}
+                    {categories.map((c) => (
+                      <FilterItem key={c}>
+                        <FilterLink
+                          href={buildFilterUrl({ category: c, page: 1 })}
+                          $active={c === category}
+                        >
+                          {c.charAt(0).toUpperCase() + c.slice(1).toLowerCase()}
+                        </FilterLink>
+                      </FilterItem>
+                    ))}
+                  </FilterList>
+                ))}
+            </FilterSection>
+
+            {/* City (autocomplete via <datalist>) */}
+            <FilterSection>
+              <FilterTitle>Città</FilterTitle>
+              <Input
+                type="text"
+                list="city-options"
+                placeholder="Es. Torino, Roma…"
+                value={cityDraft}
+                onChange={(e) => setCityDraft(e.target.value)}
+                onBlur={commitCity}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commitCity();
+                  }
+                }}
+              />
+              <datalist id="city-options">
+                {citiesList.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
+            </FilterSection>
+
+            {/* Group / Referer (autocomplete from distinct User.referer) */}
+            <FilterSection>
+              <FilterTitle>Gruppo</FilterTitle>
+              <Input
+                type="text"
+                list="referer-options"
+                placeholder="Cerca per gruppo…"
+                value={refererDraft}
+                onChange={(e) => setRefererDraft(e.target.value.toUpperCase())}
+                onBlur={commitReferer}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    commitReferer();
+                  }
+                }}
+              />
+              <datalist id="referer-options">
+                {referers.map((r) => (
+                  <option key={r} value={r} />
+                ))}
+              </datalist>
             </FilterSection>
 
             {/* Price Range */}

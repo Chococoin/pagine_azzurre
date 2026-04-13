@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { changePassword } from '@/lib/api/users';
 import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
+import PasswordInput from '@/components/ui/PasswordInput';
 import styled from 'styled-components';
 import { FlexCenter, TextCenter, FormGroup, Label, Input, PrimaryButton } from '@/lib/styles';
 
@@ -105,8 +106,7 @@ export default function ChangePasswordPage() {
               <Label htmlFor="newPassword">
                 Nuova Password
               </Label>
-              <Input
-                type="password"
+              <PasswordInput
                 id="newPassword"
                 placeholder="Inserisci la nuova password (min. 6 caratteri)"
                 required
@@ -119,8 +119,7 @@ export default function ChangePasswordPage() {
               <Label htmlFor="confirmPassword">
                 Conferma Password
               </Label>
-              <Input
-                type="password"
+              <PasswordInput
                 id="confirmPassword"
                 placeholder="Conferma la nuova password"
                 required
