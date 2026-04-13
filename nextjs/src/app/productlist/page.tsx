@@ -223,7 +223,7 @@ export default function ProductListPage() {
           disabled={actionLoading}
           style={{ width: 'auto', padding: '0.75rem 1.5rem' }}
         >
-          {actionLoading ? 'Creazione...' : 'Nuovo Prodotto'}
+          {actionLoading ? 'Creazione...' : 'Nuovo Annuncio'}
         </PrimaryButton>
       </FlexBetween>
 

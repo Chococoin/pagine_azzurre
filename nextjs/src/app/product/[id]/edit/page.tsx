@@ -382,7 +382,7 @@ export default function ProductEditPage() {
 
   return (
     <Container style={{ maxWidth: '42rem', padding: '2rem 1rem' }}>
-      <PageTitle>Modifica Prodotto</PageTitle>
+      <PageTitle>Modifica Annuncio</PageTitle>
 
       <FormCard>
         {error && <MessageBox variant="danger">{error}</MessageBox>}
