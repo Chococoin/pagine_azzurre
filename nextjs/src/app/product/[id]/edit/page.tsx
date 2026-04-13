@@ -382,7 +382,7 @@ export default function ProductEditPage() {
 
   return (
     <Container style={{ maxWidth: '42rem', padding: '2rem 1rem' }}>
-      <PageTitle>Modifica Annuncio</PageTitle>
+      <PageTitle>Inserisci / modifica annuncio</PageTitle>
 
       <FormCard>
         {error && <MessageBox variant="danger">{error}</MessageBox>}
@@ -398,95 +398,6 @@ export default function ProductEditPage() {
               onChange={(e) => setName(e.target.value)}
             />
           </FormGroup>
-
-          <FormGrid $twoCols>
-            <FormGroup>
-              <Label>Prezzo Euro</Label>
-              <DecimalInputWrapper>
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  pattern="[0-9]*[.,]?[0-9]*"
-                  // Optional — sellers can offer free products / services
-                  // Show comma as the decimal separator (Italian convention)
-                  // but accept either comma or dot when typing.
-                  value={
-                    priceEuro
-                      ? String(priceEuro).replace('.', ',')
-                      : ''
-                  }
-                  onChange={(e) => {
-                    const raw = e.target.value.replace(',', '.');
-                    if (raw === '') {
-                      setPriceEuro(0);
-                      return;
-                    }
-                    // Allow only digits and a single decimal point while typing
-                    if (/^\d*\.?\d*$/.test(raw)) {
-                      const parsed = raw === '.' ? 0 : Number(raw);
-                      if (!Number.isNaN(parsed)) setPriceEuro(parsed);
-                    }
-                  }}
-                  style={{ paddingRight: '2.25rem' }}
-                />
-                <DecimalSpinner>
-                  <DecimalSpinnerBtn
-                    type="button"
-                    aria-label="Aumenta di 1"
-                    onClick={() => setPriceEuro((p) => Math.floor(p) + 1)}
-                  >
-                    ▲
-                  </DecimalSpinnerBtn>
-                  <DecimalSpinnerBtn
-                    type="button"
-                    aria-label="Diminuisci di 1"
-                    onClick={() =>
-                      setPriceEuro((p) => Math.max(0, Math.floor(p) - 1))
-                    }
-                  >
-                    ▼
-                  </DecimalSpinnerBtn>
-                </DecimalSpinner>
-              </DecimalInputWrapper>
-            </FormGroup>
-            <FormGroup>
-              <Label>Prezzo VAL *</Label>
-              <DecimalInputWrapper>
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  required
-                  value={priceVal || ''}
-                  onChange={(e) => {
-                    const raw = e.target.value;
-                    if (raw === '') {
-                      setPriceVal(0);
-                      return;
-                    }
-                    if (/^\d+$/.test(raw)) setPriceVal(Number(raw));
-                  }}
-                  style={{ paddingRight: '2.25rem' }}
-                />
-                <DecimalSpinner>
-                  <DecimalSpinnerBtn
-                    type="button"
-                    aria-label="Aumenta di 1"
-                    onClick={() => setPriceVal((v) => v + 1)}
-                  >
-                    ▲
-                  </DecimalSpinnerBtn>
-                  <DecimalSpinnerBtn
-                    type="button"
-                    aria-label="Diminuisci di 1"
-                    onClick={() => setPriceVal((v) => Math.max(0, v - 1))}
-                  >
-                    ▼
-                  </DecimalSpinnerBtn>
-                </DecimalSpinner>
-              </DecimalInputWrapper>
-            </FormGroup>
-          </FormGrid>
 
           <FormGrid $twoCols>
             <FormGroup>
@@ -561,11 +472,11 @@ export default function ProductEditPage() {
                 value={section}
                 onChange={(e) => setSection(e.target.value as typeof section)}
               >
-                <option value="offro">Offro</option>
-                <option value="cerco">Cerco</option>
-                <option value="propongo">Propongo</option>
-                <option value="avviso">Avviso</option>
-                <option value="dono">Dono</option>
+                <option value="offro">Vendo / Offro</option>
+                <option value="cerco">Cerco / Mi serve</option>
+                <option value="propongo">Proposte / Partnership</option>
+                <option value="avviso">Avvisi / Eventi</option>
+                <option value="dono">Dono / Tempo</option>
               </Select>
             </FormGroup>
             <FormGroup style={{ display: 'flex', alignItems: 'center' }}>
@@ -591,6 +502,93 @@ export default function ProductEditPage() {
               onChange={(e) => setDescription(e.target.value)}
             />
           </FormGroup>
+
+          {section === 'offro' && (
+            <FormGrid $twoCols>
+              <FormGroup>
+                <Label>Prezzo Euro</Label>
+                <DecimalInputWrapper>
+                  <Input
+                    type="text"
+                    inputMode="decimal"
+                    pattern="[0-9]*[.,]?[0-9]*"
+                    value={
+                      priceEuro
+                        ? String(priceEuro).replace('.', ',')
+                        : ''
+                    }
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(',', '.');
+                      if (raw === '') {
+                        setPriceEuro(0);
+                        return;
+                      }
+                      if (/^\d*\.?\d*$/.test(raw)) {
+                        const parsed = raw === '.' ? 0 : Number(raw);
+                        if (!Number.isNaN(parsed)) setPriceEuro(parsed);
+                      }
+                    }}
+                    style={{ paddingRight: '2.25rem' }}
+                  />
+                  <DecimalSpinner>
+                    <DecimalSpinnerBtn
+                      type="button"
+                      aria-label="Aumenta di 1"
+                      onClick={() => setPriceEuro((p) => Math.floor(p) + 1)}
+                    >
+                      ▲
+                    </DecimalSpinnerBtn>
+                    <DecimalSpinnerBtn
+                      type="button"
+                      aria-label="Diminuisci di 1"
+                      onClick={() =>
+                        setPriceEuro((p) => Math.max(0, Math.floor(p) - 1))
+                      }
+                    >
+                      ▼
+                    </DecimalSpinnerBtn>
+                  </DecimalSpinner>
+                </DecimalInputWrapper>
+              </FormGroup>
+              <FormGroup>
+                <Label>Prezzo VAL *</Label>
+                <DecimalInputWrapper>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    required
+                    value={priceVal || ''}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      if (raw === '') {
+                        setPriceVal(0);
+                        return;
+                      }
+                      if (/^\d+$/.test(raw)) setPriceVal(Number(raw));
+                    }}
+                    style={{ paddingRight: '2.25rem' }}
+                  />
+                  <DecimalSpinner>
+                    <DecimalSpinnerBtn
+                      type="button"
+                      aria-label="Aumenta di 1"
+                      onClick={() => setPriceVal((v) => v + 1)}
+                    >
+                      ▲
+                    </DecimalSpinnerBtn>
+                    <DecimalSpinnerBtn
+                      type="button"
+                      aria-label="Diminuisci di 1"
+                      onClick={() => setPriceVal((v) => Math.max(0, v - 1))}
+                    >
+                      ▼
+                    </DecimalSpinnerBtn>
+                  </DecimalSpinner>
+                </DecimalInputWrapper>
+              </FormGroup>
+            </FormGrid>
+          )}
 
           <FormGroup>
             <Label>Immagini ({images.length})</Label>
