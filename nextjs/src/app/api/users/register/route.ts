@@ -7,10 +7,24 @@ import UserModel from '@/lib/db/models/User';
 import NewsletterModel from '@/lib/db/models/Newsletter';
 import { sendVerificationEmail } from '@/lib/services/email';
 import { encryptAccountKey } from '@/lib/crypto/accountKey';
+import {
+  enforceRateLimits,
+  getClientIp,
+} from '@/lib/security/rateLimit';
 
 // POST /api/users/register - Register new user
 export async function POST(request: NextRequest) {
   try {
+    // Task 8: rate limit. 5 registrations/hour per IP to block mass-sign-up
+    // abuse and registration-based enumeration.
+    const rateLimited = await enforceRateLimits([
+      {
+        config: { bucket: 'register-ip', limit: 5, windowMs: 60 * 60 * 1000 },
+        identifier: getClientIp(request),
+      },
+    ]);
+    if (rateLimited) return rateLimited;
+
     const body = await request.json();
     const { username, email, password, sellername, phone, cf, referer, newsletter } = body;
 

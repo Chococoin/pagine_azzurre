@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import connectDB from '@/lib/db/mongoose';
 import UserModel from '@/lib/db/models/User';
+import {
+  enforceRateLimits,
+  getClientIp,
+} from '@/lib/security/rateLimit';
 
 // POST /api/users/signin - User login
 export async function POST(request: NextRequest) {
@@ -9,12 +13,23 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email, password } = body;
 
-    if (!email || !password) {
+    if (typeof email !== 'string' || typeof password !== 'string' || email.length === 0 || password.length === 0) {
       return NextResponse.json(
         { message: 'Email e password richiesti' },
         { status: 400 }
       );
     }
+
+    // Task 8: IP rate limit. 10 attempts/minute per IP. Per-email lockout
+    // after repeated failures is handled in Task 10 below, after the user
+    // lookup so we can distinguish existing-vs-missing emails.
+    const ipRateLimited = await enforceRateLimits([
+      {
+        config: { bucket: 'signin-ip', limit: 10, windowMs: 60 * 1000 },
+        identifier: getClientIp(request),
+      },
+    ]);
+    if (ipRateLimited) return ipRateLimited;
 
     await connectDB();
 

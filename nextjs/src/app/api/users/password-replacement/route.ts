@@ -3,10 +3,25 @@ import bcrypt from 'bcryptjs';
 import connectDB from '@/lib/db/mongoose';
 import UserModel from '@/lib/db/models/User';
 import { sendPasswordReplacedEmail } from '@/lib/services/email';
+import {
+  enforceRateLimits,
+  getClientIp,
+} from '@/lib/security/rateLimit';
 
 // POST /api/users/password-replacement - Replace password with recovery ID
 export async function POST(request: NextRequest) {
   try {
+    // Task 8: rate limit. Each IP may submit 10 replacement attempts per hour
+    // — high enough that legitimate re-tries still work, low enough to block
+    // guessing of the recovery id.
+    const rateLimited = await enforceRateLimits([
+      {
+        config: { bucket: 'password-replacement-ip', limit: 10, windowMs: 60 * 60 * 1000 },
+        identifier: getClientIp(request),
+      },
+    ]);
+    if (rateLimited) return rateLimited;
+
     const body = await request.json();
     const { id, newData } = body ?? {};
 

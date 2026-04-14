@@ -3,6 +3,10 @@ import { keccak256, toBytes } from 'viem';
 import connectDB from '@/lib/db/mongoose';
 import UserModel from '@/lib/db/models/User';
 import { sendPasswordRecoveryEmail } from '@/lib/services/email';
+import {
+  enforceRateLimits,
+  getClientIp,
+} from '@/lib/security/rateLimit';
 
 // POST /api/users/password-recovery - Request password recovery
 export async function POST(request: NextRequest) {
@@ -10,12 +14,26 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { email } = body;
 
-    if (!email) {
+    if (typeof email !== 'string' || email.length === 0) {
       return NextResponse.json(
         { message: 'Email richiesta' },
         { status: 400 }
       );
     }
+
+    // Task 8: rate limit. IP-scoped (5/hour) and email-scoped (3/hour) —
+    // blocks both broad scans and targeted harassment of one inbox.
+    const rateLimited = await enforceRateLimits([
+      {
+        config: { bucket: 'password-recovery-ip', limit: 5, windowMs: 60 * 60 * 1000 },
+        identifier: getClientIp(request),
+      },
+      {
+        config: { bucket: 'password-recovery-email', limit: 3, windowMs: 60 * 60 * 1000 },
+        identifier: email.toLowerCase(),
+      },
+    ]);
+    if (rateLimited) return rateLimited;
 
     await connectDB();
 
