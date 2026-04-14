@@ -8,16 +8,19 @@ import { sendPasswordReplacedEmail } from '@/lib/services/email';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, newData } = body;
+    const { id, newData } = body ?? {};
 
-    if (!id || !newData) {
+    // Strict type checks close INJ-VULN-01. An empty-string id is also rejected
+    // because recoveryPasswordId defaults to '' in the User model, so matching
+    // on '' would wildcard every user who never requested a recovery.
+    if (typeof id !== 'string' || id.length === 0) {
       return NextResponse.json(
         { message: 'ID e nuova password richiesti' },
         { status: 400 }
       );
     }
 
-    if (newData.length < 6) {
+    if (typeof newData !== 'string' || newData.length < 6) {
       return NextResponse.json(
         { message: 'La password deve avere almeno 6 caratteri' },
         { status: 400 }

@@ -15,19 +15,29 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
 
-    // Handle empty or missing body gracefully
+    // Handle empty or missing body gracefully. The uuid field is optional,
+    // but if present it MUST be a string — anything else (object, array, ...)
+    // is a NoSQL injection attempt (cf. INJ-VULN-02).
     let uuid: string | undefined;
     try {
       const body = await request.json();
-      uuid = body.uuid;
+      if (body && body.uuid !== undefined) {
+        if (typeof body.uuid !== 'string') {
+          return NextResponse.json(
+            { message: 'ID di verifica non valido' },
+            { status: 400 }
+          );
+        }
+        uuid = body.uuid;
+      }
     } catch {
       // Body is empty or invalid JSON - use id from params
     }
 
-    // Use uuid from body or id from params
+    // Use uuid from body or id from params. Empty strings are rejected because
+    // verify.trusted_link defaults to unset; matching '' would be a wildcard.
     const verificationId = uuid || id;
-
-    if (!verificationId) {
+    if (typeof verificationId !== 'string' || verificationId.length === 0) {
       return NextResponse.json(
         { message: 'ID di verifica mancante' },
         { status: 400 }
