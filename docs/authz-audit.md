@@ -24,15 +24,15 @@
 | orders/[id]/deliver/route.ts | PUT | session-required | buyer only | Y | LOW | Buyer-only escrow release on delivery |
 | orders/[id]/pay/route.ts | PUT | session-required | buyer only | Y | LOW | Buyer-only wallet transfer, uses `decryptAccountKey` |
 | orders/mine/route.ts | GET | session-required | session.user.id | N | LOW | Only returns caller's own orders |
-| **orders/mailing/route.ts** | **POST** | session-required | **cross-tenant** | Y | **HIGH** | **New finding — see §New issues #1** |
-| **orders/notifications/route.ts** | **POST** | session-required | **cross-tenant** | N | **HIGH** | **New finding — see §New issues #2** |
+| orders/mailing/route.ts | POST | session-required | buyer/seller/admin | Y | FIXED | Hardened in `e783710` — ownership + rate limit + body sanitization |
+| ~~orders/notifications/route.ts~~ | — | — | — | — | FIXED | **Deleted** in `e783710` — was duplicate forgery surface |
 | products/route.ts | GET | public-by-design | N/A | N | LOW | Public search. Note: accepts Mongo filter params — see §Medium findings #M1 |
 | products/route.ts | POST | seller-or-admin | session.user.id (as seller) | Y | LOW | Seller hard-coded from session |
 | products/[id]/route.ts | GET | public-by-design | N/A | N | LOW | Public read |
 | products/[id]/route.ts | PUT | seller-or-admin | session.user.id | Y | FIXED | 404 on mismatch (`7c4014b`) |
 | products/[id]/route.ts | DELETE | seller-or-admin | session.user.id | Y | FIXED | 404 on mismatch (`7c4014b`) |
 | products/[id]/reviews/route.ts | GET | public-by-design | N/A | N | LOW | Public reviews read |
-| products/[id]/reviews/route.ts | POST | session-required | partial | Y | MEDIUM | Dedupes by `name` not `session.user.id` — see §Medium findings #M2 |
+| products/[id]/reviews/route.ts | POST | session-required | session.user.id | Y | FIXED | Dedupe by user id + stores `user` on new reviews (`0460ecb`) |
 | products/categories/route.ts | GET | public-by-design | N/A | N | LOW | Distinct categories list |
 | users/route.ts | GET | admin-only | N/A | N | LOW | `toJSON()` leaves PII in — acceptable because admin-only |
 | users/route.ts | POST | public-by-design | N/A | Y | LOW | Rate-limited register (Task 8), enum-closed (Task 9) |
@@ -42,10 +42,10 @@
 | users/newsletter/route.ts | PATCH | public-by-design | N/A | Y | LOW | Email-based toggle; no session |
 | users/newsletter/[email]/route.ts | GET | public-by-design | N/A | N | LOW | Public subscription status |
 | users/newsletter-update/route.ts | POST | public-by-design | N/A | Y | LOW | Email-based update |
-| users/newsletter-verify/route.ts | POST | public-by-design | N/A | Y | MEDIUM | Sets `verified=true` on any email without a token — see §Medium findings #M3 |
+| ~~users/newsletter-verify/route.ts~~ | — | — | — | — | FIXED | **Deleted** in `69c7cd5` — dead code, no call sites |
 | users/password-recovery/route.ts | POST | public-by-design | N/A | N | FIXED | Rate limit + random id + constant response (`34b5283` + `5d08c15`) |
 | users/password-replacement/route.ts | POST | public-by-design | N/A | Y | FIXED | Rate limit + type checks (`a79bf6c` + `34b5283`) |
-| users/private-key/route.ts | GET | session-required | session.user.email | N | LOW | Uses `decryptAccountKey`. Email-vs-id scoping quirk — see §Medium findings #M4 |
+| users/private-key/route.ts | GET | session-required | session.user.id | N | FIXED | Switched to `findById(session.user.id)` (`f0d6a83`) |
 | users/profile/route.ts | GET | session-required | session.user.id | N | LOW | Caller's own profile |
 | users/profile/route.ts | PUT | session-required | session.user.id | Y | LOW | Caller's own profile |
 | users/referers/route.ts | GET | public-by-design | N/A | N | LOW | Distinct grouping list |
@@ -57,10 +57,10 @@
 | users/verification/[id]/route.ts | POST | public-by-design | N/A | Y | FIXED | INJ-VULN-02 closed in `a79bf6c` |
 
 **Summary:**
-- 37 handlers audited
-- 12 **FIXED** in this branch (matches Tasks 1–10 + 13)
-- 2 **HIGH** new issues (§New issues below)
-- 4 **MEDIUM** new issues (§Medium findings below)
+- 37 handlers audited (35 after deletion of 2 unused routes)
+- **18 FIXED** in this branch (Tasks 1–10, 13, and audit New#1/New#2/M1/M2/M3/M4)
+- 0 HIGH remaining
+- 0 MEDIUM remaining (M1 was a false positive — see §Medium findings — but an incidentally-discovered bug in signin's counter-reset regex was also patched)
 - Remaining **LOW** are public-by-design or admin-only-by-design
 
 ---
