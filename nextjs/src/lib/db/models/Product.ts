@@ -5,6 +5,9 @@ export interface Review {
   name: string;
   comment: string;
   rating: number;
+  // Author id — required for new reviews (M2). Optional at the type level
+  // so legacy rows created before the migration still load without error.
+  user?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -55,6 +58,9 @@ const reviewSchema = new Schema<Review>(
     name: { type: String, required: true },
     comment: { type: String, required: true },
     rating: { type: Number, required: true },
+    // Not required at the schema level for backward compatibility with
+    // legacy rows; new routes always populate it.
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: false },
   },
   {
     timestamps: true,

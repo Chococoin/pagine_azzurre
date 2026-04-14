@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { Types } from 'mongoose';
 import connectDB from '@/lib/db/mongoose';
 import ProductModel from '@/lib/db/models/Product';
 import { authOptions } from '@/lib/auth/config';
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     const { name, rating, comment } = body;
 
-    if (!name || !rating || !comment) {
+    if (typeof name !== 'string' || typeof comment !== 'string' || rating === undefined) {
       return NextResponse.json(
         { message: 'Nome, rating e commento sono richiesti' },
         { status: 400 }
@@ -39,8 +40,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Check if user already reviewed this product
-    const existingReview = product.reviews.find((r) => r.name === name);
+    // M2: dedupe by author user id, not by display name. Legacy rows that
+    // predate the `user` column still match by name so someone upgrading
+    // from a name-only review cannot double-up.
+    const sessionUserId = session.user.id;
+    const existingReview = product.reviews.find(
+      (r) =>
+        (r.user && r.user.toString() === sessionUserId) ||
+        (!r.user && r.name === name)
+    );
     if (existingReview) {
       return NextResponse.json(
         { message: 'Hai già creato una recensione per questo articolo' },
@@ -53,6 +61,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       name,
       rating: Number(rating),
       comment,
+      user: new Types.ObjectId(sessionUserId),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
