@@ -10,7 +10,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { message: 'Non autorizzato' },
         { status: 401 }
@@ -19,11 +19,10 @@ export async function GET() {
 
     await connectDB();
 
-    // Only fetch accountKey for the authenticated user
-    const user = await UserModel.findOne(
-      { email: session.user.email },
-      { accountKey: 1 }
-    );
+    // M4: look up by the stable session.user.id, not by email. Email is
+    // mutable (admin update can change it) and a stale session token after
+    // an email rotation would otherwise read a different row.
+    const user = await UserModel.findById(session.user.id, { accountKey: 1 });
 
     if (!user) {
       return NextResponse.json(

@@ -96,11 +96,15 @@ export async function POST(request: NextRequest) {
 
     // Success: reset the per-email failure counter so repeat offenders who
     // *do* eventually log in don't stay locked out of their own account.
+    // Escape the email when building the regex — unescaped user input
+    // would let someone register `foo.*@x.com` and reset other users'
+    // lockout counters (`fooXXX@x.com`).
     try {
       const db = mongoose.connection?.db;
       if (db) {
+        const escaped = normalizedEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         await db.collection('rate_limits').deleteMany({
-          key: { $regex: `^${LOGIN_FAIL_LOCKOUT.bucket}:${normalizedEmail}:` },
+          key: { $regex: `^${LOGIN_FAIL_LOCKOUT.bucket}:${escaped}:` },
         });
       }
     } catch (err) {
