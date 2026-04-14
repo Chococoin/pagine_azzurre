@@ -4,6 +4,11 @@ import mongoose from 'mongoose';
 import connectDB from '@/lib/db/mongoose';
 import UserModel from '@/lib/db/models/User';
 import {
+  BCRYPT_COST,
+  hashPassword,
+  needsRehash,
+} from '@/lib/security/password';
+import {
   consumeRateLimit,
   enforceRateLimits,
   getClientIp,
@@ -13,9 +18,10 @@ import {
 // Fixed bcrypt hash used to pad the response time when the user does not
 // exist. Without this, a missing email returns in ~1ms while a real email
 // takes ~80ms (bcrypt.compareSync), giving a reliable timing oracle
-// (AUTH-VULN-11). The hash value itself is never expected to match — we
-// throw away the result.
-const DUMMY_BCRYPT_HASH = bcrypt.hashSync('timing-padding-placeholder', 12);
+// (AUTH-VULN-11). The cost factor matches BCRYPT_COST so timing converges
+// to the same baseline for every request once legacy hashes have been
+// upgraded on login (see needsRehash below).
+const DUMMY_BCRYPT_HASH = bcrypt.hashSync('timing-padding-placeholder', BCRYPT_COST);
 
 const LOGIN_FAIL_LOCKOUT = {
   bucket: 'signin-email-failure',
@@ -99,6 +105,19 @@ export async function POST(request: NextRequest) {
       }
     } catch (err) {
       console.warn('signin: failed to reset failure counter', err);
+    }
+
+    // Task 13: transparent password rehash. If the stored hash is at a
+    // cost factor below the current target (bumped from 8 to 12), upgrade
+    // it now that we know the plaintext. Failure here is non-fatal — the
+    // user is already signed in; we only miss the upgrade for this cycle.
+    if (needsRehash(user.password)) {
+      try {
+        user.password = hashPassword(password);
+        await user.save();
+      } catch (err) {
+        console.warn('signin: transparent rehash failed', err);
+      }
     }
 
     // Return user data (excluding sensitive fields)

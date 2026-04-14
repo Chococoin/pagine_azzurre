@@ -9,6 +9,7 @@ import NewsletterModel from '@/lib/db/models/Newsletter';
 import { authOptions } from '@/lib/auth/config';
 import { sendVerificationEmail } from '@/lib/services/email';
 import { encryptAccountKey } from '@/lib/crypto/accountKey';
+import { hashPassword } from '@/lib/security/password';
 
 // GET /api/users - Admin only: list all users
 export async function GET() {
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash password and create wallet
-    const hashedPassword = bcrypt.hashSync(password, 8);
+    const hashedPassword = hashPassword(password);
     // Generate wallet using viem
     const privateKey = generatePrivateKey();
     const walletAccount = privateKeyToAccount(privateKey);

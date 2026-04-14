@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import bcrypt from 'bcryptjs';
 import connectDB from '@/lib/db/mongoose';
 import UserModel from '@/lib/db/models/User';
 import { authOptions } from '@/lib/auth/config';
+import { hashPassword } from '@/lib/security/password';
 
 // GET /api/users/profile - Get current user profile
 export async function GET() {
@@ -103,7 +103,7 @@ export async function PUT(request: NextRequest) {
 
     // Update password if provided
     if (body.password && body.password.length >= 6) {
-      user.password = bcrypt.hashSync(body.password, 8);
+      user.password = hashPassword(body.password);
     }
 
     const updatedUser = await user.save();

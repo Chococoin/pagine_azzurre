@@ -7,6 +7,7 @@ import UserModel from '@/lib/db/models/User';
 import NewsletterModel from '@/lib/db/models/Newsletter';
 import { sendVerificationEmail } from '@/lib/services/email';
 import { encryptAccountKey } from '@/lib/crypto/accountKey';
+import { hashPassword } from '@/lib/security/password';
 import {
   enforceRateLimits,
   getClientIp,
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash password and create wallet
-    const hashedPassword = bcrypt.hashSync(password, 8);
+    const hashedPassword = hashPassword(password);
     // Generate wallet using viem
     const privateKey = generatePrivateKey();
     const walletAccount = privateKeyToAccount(privateKey);

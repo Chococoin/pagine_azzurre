@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
 import connectDB from '@/lib/db/mongoose';
 import UserModel from '@/lib/db/models/User';
 import { sendPasswordReplacedEmail } from '@/lib/services/email';
+import { hashPassword } from '@/lib/security/password';
 import {
   enforceRateLimits,
   getClientIp,
@@ -53,8 +53,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update password and clear recovery ID
-    user.password = bcrypt.hashSync(newData, 8);
+    // Update password and clear recovery ID.
+    user.password = hashPassword(newData);
     user.recoveryPasswordId = '';
     await user.save();
 
