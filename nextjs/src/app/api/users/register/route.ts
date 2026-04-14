@@ -55,13 +55,19 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    // Check if email already exists
+    // Check if email already exists. Task 9 (AUTH-VULN-05): don't leak
+    // existence via a distinct error message. On collision we pretend the
+    // registration succeeded (same 200 response shape). The target inbox
+    // already has an account and can sign in through the normal flow; the
+    // attacker learns nothing. Username / seller-name conflicts keep their
+    // explicit errors because those identifiers are intentionally public.
     const existingEmail = await UserModel.findOne({ email: email.toLowerCase() });
     if (existingEmail) {
-      return NextResponse.json(
-        { message: 'Indirizzo email già in uso' },
-        { status: 400 }
-      );
+      console.warn('register: duplicate email suppressed (enum defense)');
+      return NextResponse.json({
+        message: 'Registration received',
+        _id: null,
+      });
     }
 
     // Check if username already exists

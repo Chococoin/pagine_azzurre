@@ -1,11 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
 import connectDB from '@/lib/db/mongoose';
 import UserModel from '@/lib/db/models/User';
 import {
+  consumeRateLimit,
   enforceRateLimits,
   getClientIp,
+  rateLimitResponse,
 } from '@/lib/security/rateLimit';
+
+// Fixed bcrypt hash used to pad the response time when the user does not
+// exist. Without this, a missing email returns in ~1ms while a real email
+// takes ~80ms (bcrypt.compareSync), giving a reliable timing oracle
+// (AUTH-VULN-11). The hash value itself is never expected to match — we
+// throw away the result.
+const DUMMY_BCRYPT_HASH = bcrypt.hashSync('timing-padding-placeholder', 12);
+
+const LOGIN_FAIL_LOCKOUT = {
+  bucket: 'signin-email-failure',
+  limit: 5,
+  windowMs: 15 * 60 * 1000,
+};
 
 // POST /api/users/signin - User login
 export async function POST(request: NextRequest) {
@@ -20,9 +36,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Task 8: IP rate limit. 10 attempts/minute per IP. Per-email lockout
-    // after repeated failures is handled in Task 10 below, after the user
-    // lookup so we can distinguish existing-vs-missing emails.
+    const normalizedEmail = email.toLowerCase();
+
+    // Task 8: IP rate limit. 10 attempts/minute per IP.
     const ipRateLimited = await enforceRateLimits([
       {
         config: { bucket: 'signin-ip', limit: 10, windowMs: 60 * 1000 },
@@ -31,31 +47,58 @@ export async function POST(request: NextRequest) {
     ]);
     if (ipRateLimited) return ipRateLimited;
 
+    // Task 10: per-email lockout. We peek (no increment) before doing the
+    // expensive bcrypt work. If the email is already over the failure
+    // threshold, return 429 without leaking whether the password would have
+    // matched.
     await connectDB();
-
-    const user = await UserModel.findOne({ email: email.toLowerCase() });
-
-    if (!user) {
-      return NextResponse.json(
-        { message: 'Email o password non validi' },
-        { status: 401 }
-      );
+    const failuresPreview = await consumeRateLimit(
+      { ...LOGIN_FAIL_LOCKOUT },
+      normalizedEmail
+    );
+    if (!failuresPreview.ok) {
+      // Note: we consumed one slot above. That's intentional — attackers
+      // should not be able to probe lockout status for free. Legitimate
+      // users see the lockout window reset after 15 minutes.
+      return rateLimitResponse(failuresPreview);
     }
 
-    const isPasswordValid = bcrypt.compareSync(password, user.password);
+    const user = await UserModel.findOne({ email: normalizedEmail });
 
-    if (!isPasswordValid) {
-      return NextResponse.json(
-        { message: 'Email o password non validi' },
-        { status: 401 }
-      );
+    // Task 9 (AUTH-VULN-11): always run bcrypt.compareSync, even when the
+    // user does not exist, so the timing oracle is closed.
+    const hashToCompare = user?.password ?? DUMMY_BCRYPT_HASH;
+    const bcryptOk = bcrypt.compareSync(password, hashToCompare);
+
+    // Task 9 (AUTH-VULN-02/03): one generic failure response for every
+    // negative path — missing user, bad password, unverified — so the
+    // caller cannot distinguish.
+    const genericFailure = NextResponse.json(
+      { message: 'Email o password non validi' },
+      { status: 401 }
+    );
+
+    if (!user || !bcryptOk) {
+      // The slot we consumed above already counts this failure. We do not
+      // double-count here.
+      return genericFailure;
     }
 
     if (!user.verify.verified) {
-      return NextResponse.json(
-        { message: 'Account non verificato. Controlla la tua email.' },
-        { status: 401 }
-      );
+      return genericFailure;
+    }
+
+    // Success: reset the per-email failure counter so repeat offenders who
+    // *do* eventually log in don't stay locked out of their own account.
+    try {
+      const db = mongoose.connection?.db;
+      if (db) {
+        await db.collection('rate_limits').deleteMany({
+          key: { $regex: `^${LOGIN_FAIL_LOCKOUT.bucket}:${normalizedEmail}:` },
+        });
+      }
+    } catch (err) {
+      console.warn('signin: failed to reset failure counter', err);
     }
 
     // Return user data (excluding sensitive fields)
