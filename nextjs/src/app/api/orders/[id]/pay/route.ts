@@ -5,6 +5,7 @@ import OrderModel from '@/lib/db/models/Order';
 import UserModel from '@/lib/db/models/User';
 import { authOptions } from '@/lib/auth/config';
 import { transferToEscrow } from '@/lib/services/blockchain';
+import { decryptAccountKey } from '@/lib/crypto/accountKey';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -72,9 +73,10 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       // Convert price to token amount (totalPriceVal is in VLZ, token has 2 decimals)
       const amount = BigInt(Math.round(order.totalPriceVal * 100));
 
-      // Transfer tokens from buyer to escrow
+      // Transfer tokens from buyer to escrow. Decrypt the on-disk private
+      // key just-in-time; never persist the plaintext.
       const result = await transferToEscrow(
-        buyer.accountKey as `0x${string}`,
+        decryptAccountKey(buyer.accountKey) as `0x${string}`,
         amount
       );
 

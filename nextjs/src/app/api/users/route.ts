@@ -8,6 +8,7 @@ import UserModel from '@/lib/db/models/User';
 import NewsletterModel from '@/lib/db/models/Newsletter';
 import { authOptions } from '@/lib/auth/config';
 import { sendVerificationEmail } from '@/lib/services/email';
+import { encryptAccountKey } from '@/lib/crypto/accountKey';
 
 // GET /api/users - Admin only: list all users
 export async function GET() {
@@ -100,10 +101,10 @@ export async function POST(request: NextRequest) {
     const walletAccount = privateKeyToAccount(privateKey);
     const trustedLink = uuidv4();
 
-    // Create user
+    // Create user — accountKey is encrypted at rest (AES-256-GCM + KEK).
     const user = new UserModel({
       account: walletAccount.address,
-      accountKey: privateKey,
+      accountKey: encryptAccountKey(privateKey),
       username: username.toUpperCase(),
       email: email.toLowerCase(),
       password: hashedPassword,

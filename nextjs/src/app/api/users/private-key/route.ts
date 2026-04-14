@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import connectDB from '@/lib/db/mongoose';
 import UserModel from '@/lib/db/models/User';
 import { authOptions } from '@/lib/auth/config';
+import { decryptAccountKey } from '@/lib/crypto/accountKey';
 
 // GET /api/users/private-key - Get authenticated user's private key
 export async function GET() {
@@ -39,7 +40,7 @@ export async function GET() {
     }
 
     return NextResponse.json({
-      accountKey: user.accountKey,
+      accountKey: decryptAccountKey(user.accountKey),
     });
   } catch (error) {
     console.error('Error fetching private key:', error);
