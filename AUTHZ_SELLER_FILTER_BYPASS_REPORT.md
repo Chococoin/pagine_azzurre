@@ -299,6 +299,15 @@ After applying the fix, verify:
 
 ---
 
+## Timeline
+
+- **2026-04-14:** Vulnerability discovered during security audit
+- **2026-04-14:** Test environment prepared with sample data
+- **2026-04-14:** Vulnerability confirmed and exploited
+- **2026-04-14:** Report generated
+
+---
+
 ## References
 
 ### Files
@@ -329,6 +338,89 @@ CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N
 - **Availability (A):** None - No availability impact
 
 **Base Score:** 7.5 (HIGH)
+
+---
+
+## Appendices
+
+### Appendix A: Test Commands
+
+```bash
+# 1. Seed database
+cd /Users/chocos/Desktop/pagine_azzurre/nextjs
+npx tsx scripts/seed.ts
+
+# 2. Create test orders
+npx tsx create_test_orders.ts
+
+# 3. Manual testing (after logging in and getting session cookie)
+# Replace <SESSION_TOKEN> with actual cookie value
+
+# Test 1: All orders (vulnerable)
+curl "http://localhost:3000/api/orders" \
+  -H "Cookie: next-auth.session-token=<SESSION_TOKEN>" \
+  | jq '.'
+
+# Test 2: Own orders (expected behavior)
+curl "http://localhost:3000/api/orders?seller=69de78f940c0132402814d18" \
+  -H "Cookie: next-auth.session-token=<SESSION_TOKEN>" \
+  | jq '.'
+
+# Test 3: Other seller's orders (vulnerable)
+curl "http://localhost:3000/api/orders?seller=69de78f940c0132402814d1a" \
+  -H "Cookie: next-auth.session-token=<SESSION_TOKEN>" \
+  | jq '.'
+```
+
+### Appendix B: User IDs
+
+```
+Mario (Seller & Admin): 69de78f940c0132402814d18
+Giulia (Seller): 69de78f940c0132402814d1a
+```
+
+### Appendix C: Sample Order Response
+
+```json
+{
+  "_id": "69de7a08a9ae851d3bd8e546",
+  "seller": "69de78f940c0132402814d1a",
+  "user": {
+    "_id": "69de78f940c0132402814d18",
+    "name": "MARIO_ROSSI"
+  },
+  "orderItems": [
+    {
+      "product": "69de78f940c0132402814d21",
+      "name": "Borsa Artigianale in Pelle",
+      "qty": 1,
+      "priceVal": 80,
+      "priceEuro": 150,
+      "image": ["/images/test2.jpg"],
+      "seller": "69de78f940c0132402814d1a",
+      "_id": "69de7a08a9ae851d3bd8e547"
+    }
+  ],
+  "shippingAddress": {
+    "fullName": "Mario Rossi",
+    "address": "456 Via Roma",
+    "city": "Roma",
+    "postalCode": "00100",
+    "country": "Italia"
+  },
+  "paymentMethod": "PayPal",
+  "itemsPriceVal": 80,
+  "itemsPriceEuro": 150,
+  "totalPriceVal": 80,
+  "totalPriceEuro": 150,
+  "shippingPrice": 0,
+  "isPaid": false,
+  "isDelivered": false,
+  "createdAt": "2026-04-14T17:32:40.618Z",
+  "updatedAt": "2026-04-14T17:32:40.618Z",
+  "__v": 0
+}
+```
 
 ---
 
