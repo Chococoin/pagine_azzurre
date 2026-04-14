@@ -1,0 +1,215 @@
+{
+  "test_name": "Account Lockout Protection Test",
+  "timestamp": "2026-04-14T15:57:59.844104",
+  "target_url": "http://localhost:3000/api/users/signin",
+  "email": "pentest@shannon.local",
+  "num_attempts": 20,
+  "lockout_detected": false,
+  "avg_response_time_ms": 68.6,
+  "status_codes": {
+    "401": 20
+  },
+  "vulnerability_confirmed": true,
+  "results": [
+    {
+      "attempt": 1,
+      "password": "wrong1",
+      "status_code": 401,
+      "response_time_ms": 76.97,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 2,
+      "password": "wrong2",
+      "status_code": 401,
+      "response_time_ms": 67.86,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 3,
+      "password": "wrong3",
+      "status_code": 401,
+      "response_time_ms": 71.78,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 4,
+      "password": "wrong4",
+      "status_code": 401,
+      "response_time_ms": 72.63,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 5,
+      "password": "wrong5",
+      "status_code": 401,
+      "response_time_ms": 71.74,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 6,
+      "password": "wrong6",
+      "status_code": 401,
+      "response_time_ms": 71.67,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 7,
+      "password": "wrong7",
+      "status_code": 401,
+      "response_time_ms": 68.51,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 8,
+      "password": "wrong8",
+      "status_code": 401,
+      "response_time_ms": 68.53,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 9,
+      "password": "wrong9",
+      "status_code": 401,
+      "response_time_ms": 67.85,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 10,
+      "password": "wrong10",
+      "status_code": 401,
+      "response_time_ms": 68.22,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 11,
+      "password": "wrong11",
+      "status_code": 401,
+      "response_time_ms": 66.87,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 12,
+      "password": "wrong12",
+      "status_code": 401,
+      "response_time_ms": 67.42,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 13,
+      "password": "wrong13",
+      "status_code": 401,
+      "response_time_ms": 66.06,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 14,
+      "password": "wrong14",
+      "status_code": 401,
+      "response_time_ms": 65.1,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 15,
+      "password": "wrong15",
+      "status_code": 401,
+      "response_time_ms": 64.58,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 16,
+      "password": "wrong16",
+      "status_code": 401,
+      "response_time_ms": 66.43,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 17,
+      "password": "wrong17",
+      "status_code": 401,
+      "response_time_ms": 66.7,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 18,
+      "password": "wrong18",
+      "status_code": 401,
+      "response_time_ms": 68.14,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 19,
+      "password": "wrong19",
+      "status_code": 401,
+      "response_time_ms": 68.19,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    },
+    {
+      "attempt": 20,
+      "password": "wrong20",
+      "status_code": 401,
+      "response_time_ms": 66.79,
+      "blocked": false,
+      "response": {
+        "message": "Email o password non validi"
+      }
+    }
+  ]
+}
