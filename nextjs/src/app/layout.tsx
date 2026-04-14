@@ -13,6 +13,7 @@ import {
   DEFAULT_OG_IMAGE,
   TWITTER_HANDLE,
 } from "@/lib/seo/config";
+import { safeJsonLd } from "@/lib/security/jsonLd";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -148,12 +149,12 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(organizationJsonLd) }}
         />
         <script
           type="application/ld+json"
           suppressHydrationWarning
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: safeJsonLd(websiteJsonLd) }}
         />
         <AuthProvider>
           <Web3Provider>

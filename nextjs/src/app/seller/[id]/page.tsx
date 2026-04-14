@@ -9,6 +9,7 @@ import {
   truncate,
 } from '@/lib/seo/config';
 import SellerDetailClient from './SellerDetailClient';
+import { safeJsonLd } from '@/lib/security/jsonLd';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -132,12 +133,12 @@ export default async function SellerPage({ params }: PageProps) {
       <script
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(storeJsonLd) }}
       />
       <script
         type="application/ld+json"
         suppressHydrationWarning
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
       <SellerDetailClient sellerId={id} />
     </>
