@@ -27,11 +27,23 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
+    // AUTHZ-VULN-03: the seller query param was honored for every caller,
+    // letting seller A list seller B's orders. Now:
+    //   - admin: may filter by any seller (query param honored).
+    //   - seller (non-admin): filter is forced to their own user id, no matter
+    //     what the caller sent, so it's impossible to see other sellers' orders.
     const searchParams = request.nextUrl.searchParams;
-    const seller = searchParams.get('seller') || '';
-    const sellerFilter = seller ? { seller } : {};
+    let sellerFilter: { seller?: string } = {};
+    if (session.user.isAdmin) {
+      const seller = searchParams.get('seller');
+      if (typeof seller === 'string' && seller.length > 0) {
+        sellerFilter = { seller };
+      }
+    } else {
+      sellerFilter = { seller: session.user.id };
+    }
 
-    const orders = await OrderModel.find({ ...sellerFilter }).populate('user', 'name');
+    const orders = await OrderModel.find(sellerFilter).populate('user', 'name');
 
     return NextResponse.json(orders);
   } catch (error) {

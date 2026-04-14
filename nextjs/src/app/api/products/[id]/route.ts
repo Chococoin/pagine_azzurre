@@ -67,11 +67,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Check if user owns the product or is admin
+    // Ownership check. Respond 404 (not 403) so we don't confirm the
+    // existence of products that belong to other sellers — blocks
+    // enumeration by ObjectId.
     if (product.seller.toString() !== session.user.id && !session.user.isAdmin) {
       return NextResponse.json(
-        { message: 'Non autorizzato a modificare questo prodotto' },
-        { status: 403 }
+        { message: 'Prodotto non trovato' },
+        { status: 404 }
       );
     }
 
@@ -167,11 +169,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       );
     }
 
-    // Check if user owns the product or is admin
+    // Ownership check. Respond 404 (not 403) so we don't confirm the
+    // existence of products that belong to other sellers.
     if (product.seller.toString() !== session.user.id && !session.user.isAdmin) {
       return NextResponse.json(
-        { message: 'Non autorizzato a eliminare questo prodotto' },
-        { status: 403 }
+        { message: 'Prodotto non trovato' },
+        { status: 404 }
       );
     }
 
