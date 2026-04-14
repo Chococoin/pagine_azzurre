@@ -1,18 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import mongoose from 'mongoose';
 import connectDB from '@/lib/db/mongoose';
 import UserModel from '@/lib/db/models/User';
 import NewsletterModel from '@/lib/db/models/Newsletter';
 import { authOptions } from '@/lib/auth/config';
+import {
+  AuthError,
+  requireSession,
+  projectPublicUser,
+  projectOwnerUser,
+} from '@/lib/auth/require';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// GET /api/users/[id] - Get user by ID (public but sanitized)
+// GET /api/users/[id]
+// AUTHZ-VULN-02: was fully public and returned every PII field.
+// Now: requires a valid session; full profile only for the owner or admin;
+// everyone else receives the minimal public projection (username, seller card, ...).
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
+    const session = await requireSession();
     const { id } = await params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return NextResponse.json({ message: 'Utente non trovato' }, { status: 404 });
+    }
 
     await connectDB();
 
@@ -22,18 +37,23 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ message: 'Utente non trovato' }, { status: 404 });
     }
 
-    // Get user data using toJSON to exclude sensitive fields
-    const userData = user.toJSON();
+    const isOwner = session.user.id === user._id.toString();
+    const canSeeFullProfile = isOwner || session.user.isAdmin;
 
-    // Check newsletter status
+    if (!canSeeFullProfile) {
+      return NextResponse.json(projectPublicUser(user));
+    }
+
+    // Owner or admin: full projection + newsletter subscription status (PII).
     const newsletter = await NewsletterModel.findOne({ email: user.email });
     const newsletterStatus = newsletter?.verified ? 'Verified' : 'Not Verified';
 
     return NextResponse.json({
-      ...userData,
+      ...projectOwnerUser(user),
       newsletter: newsletterStatus,
     });
   } catch (error) {
+    if (error instanceof AuthError) return error.response;
     console.error('Error fetching user:', error);
     return NextResponse.json(
       { message: 'Errore nel recupero utente' },
