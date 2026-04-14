@@ -1,0 +1,20 @@
+{
+  "vulnerability_id": "XSS-VULN-02",
+  "product_id": "69de42946db11ad346a6765b",
+  "product_url": "http://localhost:3000/product/69de42946db11ad346a6765b",
+  "timestamp": "2026-04-14T13:36:23.072Z",
+  "alert_triggered": false,
+  "alert_message": "",
+  "payload_in_html": true,
+  "json_ld_contexts": {
+    "product": false,
+    "breadcrumb": false
+  },
+  "console_messages": [
+    "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+    "[HMR] connected",
+    "[Fast Refresh] rebuilding",
+    "[Fast Refresh] done in 109ms"
+  ],
+  "evidence_directory": "/Users/chocos/Desktop/pagine_azzurre/nextjs/evidence/xss-name-verify"
+}
