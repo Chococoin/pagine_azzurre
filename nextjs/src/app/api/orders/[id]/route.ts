@@ -30,6 +30,18 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       );
     }
 
+    // AUTHZ-VULN-01: Ownership check. Buyer, seller, or admin only.
+    // Respond 404 on mismatch so the endpoint does not confirm the id exists.
+    const sessionUserId = session.user.id;
+    const isBuyer = order.user?.toString() === sessionUserId;
+    const isSeller = order.seller?.toString() === sessionUserId;
+    if (!isBuyer && !isSeller && !session.user.isAdmin) {
+      return NextResponse.json(
+        { message: 'Ordine non trovato' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(order);
   } catch (error) {
     console.error('Error fetching order:', error);
