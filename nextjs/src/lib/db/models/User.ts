@@ -45,6 +45,13 @@ export interface User {
   inscriptionBlock: number;
   verify: Verify;
   seller: Seller;
+  // GDPR Article 17 — right to erasure. Set by DELETE /api/users/me.
+  // The row is kept for `deletionScheduledFor - deletedAt` days so the
+  // user can recover from an accidental deletion; after that a separate
+  // job (TODO) hard-deletes or anonymizes it. Rows with deletedAt !== null
+  // are treated as non-existent by signin and by public lookups.
+  deletedAt?: Date | null;
+  deletionScheduledFor?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -92,6 +99,8 @@ const userSchema = new Schema<UserDocument>(
       verified: { type: Boolean, default: false },
       trusted_link: { type: String, required: false },
     },
+    deletedAt: { type: Date, required: false, default: null },
+    deletionScheduledFor: { type: Date, required: false, default: null },
     seller: {
       name: { type: String, required: true, unique: true },
       link: { type: String, required: false },

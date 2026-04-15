@@ -7,7 +7,11 @@ export async function GET() {
   try {
     await connectDB();
 
-    const topSellers = await UserModel.find({ isSeller: true })
+    // Task 12c: hide soft-deleted users from the public top-sellers list.
+    const topSellers = await UserModel.find({
+      isSeller: true,
+      deletedAt: null,
+    })
       .sort({ 'seller.rating': -1 })
       .limit(3);
 

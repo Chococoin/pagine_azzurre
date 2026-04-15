@@ -18,7 +18,10 @@ export async function GET() {
 
     const user = await UserModel.findById(session.user.id);
 
-    if (!user) {
+    // Task 12c: treat soft-deleted rows as gone even for the owner, so a
+    // cached JWT from before the deletion request cannot continue to read
+    // or mutate the profile during the 30-day grace window.
+    if (!user || user.deletedAt) {
       return NextResponse.json({ message: 'Utente non trovato' }, { status: 404 });
     }
 
@@ -77,7 +80,10 @@ export async function PUT(request: NextRequest) {
 
     const user = await UserModel.findById(session.user.id);
 
-    if (!user) {
+    // Task 12c: treat soft-deleted rows as gone even for the owner, so a
+    // cached JWT from before the deletion request cannot continue to read
+    // or mutate the profile during the 30-day grace window.
+    if (!user || user.deletedAt) {
       return NextResponse.json({ message: 'Utente non trovato' }, { status: 404 });
     }
 

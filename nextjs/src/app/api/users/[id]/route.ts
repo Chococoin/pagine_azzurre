@@ -33,7 +33,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const user = await UserModel.findById(id);
 
-    if (!user) {
+    // Task 12c: treat soft-deleted rows as nonexistent for everyone except
+    // admins (who may need to inspect them for recovery / compliance).
+    if (!user || (user.deletedAt && !session.user.isAdmin)) {
       return NextResponse.json({ message: 'Utente non trovato' }, { status: 404 });
     }
 

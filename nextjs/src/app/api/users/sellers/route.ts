@@ -7,7 +7,11 @@ export async function GET() {
   try {
     await connectDB();
 
-    const sellers = await UserModel.find({ isSeller: true });
+    // Task 12c: hide soft-deleted users from the public directory.
+    const sellers = await UserModel.find({
+      isSeller: true,
+      deletedAt: null,
+    });
 
     // Sanitize sensitive fields using toJSON
     const sanitizedSellers = sellers.map((seller) => seller.toJSON());

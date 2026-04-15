@@ -94,6 +94,14 @@ export async function POST(request: NextRequest) {
       return genericFailure;
     }
 
+    // Task 12c: users that have requested GDPR deletion cannot sign in,
+    // even during the 30-day grace window. (Allowing login during grace
+    // would require a distinct "account recovery" UX that isn't built
+    // yet; the generic failure response keeps the enum oracle closed.)
+    if (user.deletedAt) {
+      return genericFailure;
+    }
+
     // Success: reset the per-email failure counter so repeat offenders who
     // *do* eventually log in don't stay locked out of their own account.
     // Escape the email when building the regex — unescaped user input
