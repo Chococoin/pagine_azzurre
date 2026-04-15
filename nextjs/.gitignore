@@ -51,3 +51,6 @@ storybook-static
 
 # local DB backups (never commit)
 .backups/
+
+# CSFLE local master key material (dev only; prod uses AWS/GCP/Azure KMS)
+secrets/
