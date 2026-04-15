@@ -1,4 +1,5 @@
 import mongoose, { Document, Model, Schema } from 'mongoose';
+import { randomUUID } from 'crypto';
 
 // Newsletter interface
 export interface Newsletter {
@@ -7,6 +8,11 @@ export interface Newsletter {
   citybase?: string;
   verified: boolean;
   newsnumber: number;
+  // Per-subscription token for the GDPR / CAN-SPAM unsubscribe link.
+  // Not secret (embedded in outbound emails) but unguessable so third
+  // parties cannot unsubscribe arbitrary emails. Lazy-generated for
+  // legacy rows on the next send (see sendNewsletterWelcomeEmail).
+  unsubscribeToken?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,6 +32,13 @@ const newsletterSchema = new Schema<NewsletterDocument>(
     citybase: { type: String, required: false },
     verified: { type: Boolean, required: true, default: false },
     newsnumber: { type: Number, required: true, default: 0 },
+    unsubscribeToken: {
+      type: String,
+      required: false,
+      unique: true,
+      sparse: true,
+      default: () => randomUUID(),
+    },
   },
   {
     timestamps: true,

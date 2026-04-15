@@ -1,4 +1,7 @@
+import { randomUUID } from 'crypto';
 import { getEtherealProvider, EtherealProvider } from './etherealProvider';
+import NewsletterModel from '@/lib/db/models/Newsletter';
+import connectDB from '@/lib/db/mongoose';
 
 // Email provider configuration
 const EMAIL_PROVIDER = process.env.EMAIL_PROVIDER || 'mailtrap';
@@ -146,7 +149,44 @@ function emailOrderTable(items: string, total: number, address?: string): string
 /**
  * Base email template wrapper
  */
-function createEmailTemplate(content: string, preheader?: string): string {
+/**
+ * Resolve or lazily-generate an unsubscribe URL for a Newsletter row.
+ * Legacy rows without a token get one here and the token is saved.
+ * Returns null if the email is not subscribed at all — callers should
+ * skip the unsubscribe footer in that case.
+ */
+async function resolveUnsubscribeUrl(email: string): Promise<string | null> {
+  try {
+    await connectDB();
+    const lookup = email.toLowerCase();
+    const subscriber = await NewsletterModel.findOne({ email: lookup });
+    if (!subscriber) return null;
+    if (!subscriber.unsubscribeToken) {
+      subscriber.unsubscribeToken = randomUUID();
+      await subscriber.save();
+    }
+    return `${APP_URL}/api/users/newsletter/unsubscribe?token=${encodeURIComponent(
+      subscriber.unsubscribeToken
+    )}`;
+  } catch (err) {
+    console.error('Error resolving unsubscribe url:', err);
+    return null;
+  }
+}
+
+function unsubscribeFooter(unsubscribeUrl: string): string {
+  return `
+    <p style="margin: 16px 0 0 0; color: ${colors.textMuted}; font-size: 12px; line-height: 1.5;">
+      Ricevi questa email perché sei iscritto alla nostra newsletter. Se non vuoi più riceverle, puoi <a href="${unsubscribeUrl}" style="color: ${colors.textSecondary}; text-decoration: underline;">disiscriverti con un clic</a>.
+    </p>
+  `;
+}
+
+function createEmailTemplate(
+  content: string,
+  preheader?: string,
+  unsubscribeUrl?: string
+): string {
   return `
 <!DOCTYPE html>
 <html lang="it">
@@ -235,6 +275,7 @@ function createEmailTemplate(content: string, preheader?: string): string {
               <p style="margin: 0; color: ${colors.textMuted}; font-size: 12px;">
                 © ${new Date().getFullYear()} Pagine Azzurre. Tutti i diritti riservati.
               </p>
+              ${unsubscribeUrl ? unsubscribeFooter(unsubscribeUrl) : ''}
             </td>
           </tr>
 
@@ -421,8 +462,19 @@ export async function sendWelcomeEmail(
     ${emailButton('Esplora Pagine Azzurre', APP_URL, colors.success)}
   `;
 
-  const html = createEmailTemplate(content, `${username}, il tuo account è stato verificato!`);
-  const text = `Account Verificato! Ciao ${username}, il tuo account è stato verificato con successo. Hai ricevuto 100 VLZ come bonus di benvenuto!`;
+  // GDPR / ePrivacy: only embed the unsubscribe footer when this email is
+  // also confirming a newsletter subscription. Pure account verification
+  // is transactional and does not require an unsubscribe link.
+  const unsubscribeUrl = isNewsletter ? await resolveUnsubscribeUrl(to) : null;
+
+  const html = createEmailTemplate(
+    content,
+    `${username}, il tuo account è stato verificato!`,
+    unsubscribeUrl ?? undefined
+  );
+  const text = `Account Verificato! Ciao ${username}, il tuo account è stato verificato con successo. Hai ricevuto 100 VLZ come bonus di benvenuto!${
+    unsubscribeUrl ? `\n\nDisiscriviti dalla newsletter: ${unsubscribeUrl}` : ''
+  }`;
 
   await sendEmailWithProvider(
     to,
@@ -433,6 +485,7 @@ export async function sendWelcomeEmail(
     templateUuid ? {
       user_name: username,
       newsletter_subscribed: isNewsletter ? 'Sì' : 'No',
+      unsubscribe_url: unsubscribeUrl ?? '',
     } : undefined
   );
 }
@@ -592,8 +645,20 @@ export async function sendNewsletterWelcomeEmail(to: string, name?: string) {
     ${emailButton('Visita Pagine Azzurre', APP_URL)}
   `;
 
-  const html = createEmailTemplate(content, `${displayName}, benvenuto nella newsletter di Pagine Azzurre!`);
-  const text = `Grazie per esserti iscritto alla newsletter di Pagine Azzurre! Riceverai aggiornamenti, offerte e promozioni.`;
+  // Newsletter emails are pure marketing — unsubscribe link is mandatory
+  // under GDPR / CAN-SPAM. If the subscriber row is missing we still send
+  // the welcome but without the footer; a background backfill is cheap to
+  // add later if needed.
+  const unsubscribeUrl = await resolveUnsubscribeUrl(to);
+
+  const html = createEmailTemplate(
+    content,
+    `${displayName}, benvenuto nella newsletter di Pagine Azzurre!`,
+    unsubscribeUrl ?? undefined
+  );
+  const text = `Grazie per esserti iscritto alla newsletter di Pagine Azzurre! Riceverai aggiornamenti, offerte e promozioni.${
+    unsubscribeUrl ? `\n\nDisiscriviti: ${unsubscribeUrl}` : ''
+  }`;
 
   await sendEmailWithProvider(
     to,
@@ -601,7 +666,12 @@ export async function sendNewsletterWelcomeEmail(to: string, name?: string) {
     html,
     text,
     templateUuid,
-    templateUuid ? { user_name: displayName } : undefined
+    templateUuid
+      ? {
+          user_name: displayName,
+          unsubscribe_url: unsubscribeUrl ?? '',
+        }
+      : undefined
   );
 }
 
