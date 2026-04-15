@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import { LayoutWrapper } from "@/components/layout";
 import { StyledComponentsRegistry, ThemeProvider } from "@/lib/styles";
@@ -138,21 +139,26 @@ const websiteJsonLd = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Task 14: read the per-request nonce set by src/middleware.ts and pass
+  // it to every inline <script> so the strict CSP will allow them.
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
   return (
     <html lang="it">
       <body>
         <script
           type="application/ld+json"
+          nonce={nonce}
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: safeJsonLd(organizationJsonLd) }}
         />
         <script
           type="application/ld+json"
+          nonce={nonce}
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: safeJsonLd(websiteJsonLd) }}
         />

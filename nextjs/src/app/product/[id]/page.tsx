@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { getProductForSeo } from '@/lib/seo/queries';
 import {
@@ -88,6 +89,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProductPage({ params }: PageProps) {
   const { id } = await params;
   const product = await getProductForSeo(id);
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   if (!product) {
     notFound();
@@ -166,11 +168,13 @@ export default async function ProductPage({ params }: PageProps) {
     <>
       <script
         type="application/ld+json"
+        nonce={nonce}
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: safeJsonLd(productJsonLd) }}
       />
       <script
         type="application/ld+json"
+        nonce={nonce}
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: safeJsonLd(breadcrumbJsonLd) }}
       />
