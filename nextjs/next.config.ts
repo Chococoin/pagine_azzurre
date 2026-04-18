@@ -34,6 +34,15 @@ const nextConfig: NextConfig = {
     },
   ],
 
+  redirects: async () => [
+    {
+      source: '/:path*',
+      has: [{ type: 'host', value: 'pagineazzurre.net' }],
+      destination: 'https://www.pagineazzurre.net/:path*',
+      permanent: true,
+    },
+  ],
+
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['lucide-react'],
