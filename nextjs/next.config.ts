@@ -21,7 +21,7 @@ const nextConfig: NextConfig = {
     styledComponents: true,
   },
 
-  // Security headers
+  // Security + indexing headers
   headers: async () => [
     {
       source: '/(.*)',
@@ -30,6 +30,16 @@ const nextConfig: NextConfig = {
         { key: 'X-Frame-Options', value: 'DENY' },
         { key: 'X-XSS-Protection', value: '1; mode=block' },
         { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+      ],
+    },
+    {
+      // De-index private app pages. They are allowed in robots.txt so Google
+      // can crawl them and honor this header, which removes existing entries
+      // from the index.
+      source:
+        '/:segment(profile|cart|checkout|shipping|payment|placeorder|orderlist|orderhistory|order|userlist|productlist|dashboard|change-password|password-recovery|verification|signin|register|user)/:rest*',
+      headers: [
+        { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
       ],
     },
   ],

@@ -6,31 +6,14 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
       {
+        // Only block API routes. Private app pages (signin, cart, profile, etc.)
+        // are de-indexed via X-Robots-Tag: noindex in next.config.ts so Google
+        // can crawl them, read the header, and remove them from the index.
+        // Blocking in robots.txt leaves already-indexed URLs as ghost entries
+        // because Google cannot reach them to see the noindex.
         userAgent: '*',
         allow: '/',
-        disallow: [
-          '/api/',
-          '/profile',
-          '/profile/',
-          '/cart',
-          '/checkout',
-          '/shipping',
-          '/payment',
-          '/placeorder',
-          '/orderlist',
-          '/orderhistory',
-          '/order/',
-          '/userlist',
-          '/productlist',
-          '/dashboard',
-          '/change-password/',
-          '/password-recovery',
-          '/password-recovery/',
-          '/verification/',
-          '/signin',
-          '/register',
-          '/user/',
-        ],
+        disallow: ['/api/'],
       },
       {
         // Block aggressive AI crawlers from scraping marketplace listings wholesale
