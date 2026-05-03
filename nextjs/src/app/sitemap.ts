@@ -47,20 +47,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Section-filtered home views (each section is its own listing page)
-  const sectionRoutes: Entry[] = [
-    'offro',
-    'cerco',
-    'propongo',
-    'avviso',
-    'dono',
-  ].map((section) => ({
-    url: `${SITE_URL}/?section=${section}`,
-    lastModified: now,
-    changeFrequency: 'daily' as const,
-    priority: 0.8,
-  }));
-
   let productRoutes: Entry[] = [];
   let sellerRoutes: Entry[] = [];
 
@@ -109,5 +95,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('[sitemap] Failed to fetch dynamic routes:', error);
   }
 
-  return [...staticRoutes, ...sectionRoutes, ...productRoutes, ...sellerRoutes];
+  return [...staticRoutes, ...productRoutes, ...sellerRoutes];
 }
