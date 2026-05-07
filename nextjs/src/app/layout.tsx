@@ -144,8 +144,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Task 14: read the per-request nonce set by src/middleware.ts and pass
-  // it to every inline <script> so the strict CSP will allow them.
+  // Task 14: read the per-request nonce set by src/proxy.ts and pass it to
+  // every inline <script> so the strict CSP will allow them.
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   return (
     <html lang="it">
