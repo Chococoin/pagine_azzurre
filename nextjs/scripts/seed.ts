@@ -2,18 +2,29 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import UserModel from '../src/lib/db/models/User';
 import ProductModel from '../src/lib/db/models/Product';
+import OrderModel from '../src/lib/db/models/Order';
+import NewsletterModel from '../src/lib/db/models/Newsletter';
+import MessageModel from '../src/lib/db/models/Message';
 
-const MONGODB_URL = 'mongodb://localhost:27017/pagineazzurre';
+const MONGODB_URL = process.env.MONGODB_URL;
+if (!MONGODB_URL) {
+  throw new Error('MONGODB_URL is not set. Define it in .env.local or pass via env.');
+}
 
 async function seed() {
-  console.log('Connecting to MongoDB...');
-  await mongoose.connect(MONGODB_URL);
+  console.log(`Connecting to MongoDB at ${MONGODB_URL!.replace(/\/\/[^@]+@/, '//***:***@')} ...`);
+  await mongoose.connect(MONGODB_URL!);
   console.log('Connected!');
 
-  // Clear existing data
+  // Clear existing data across all collections to avoid orphan refs
   console.log('Clearing existing data...');
-  await UserModel.deleteMany({});
-  await ProductModel.deleteMany({});
+  await Promise.all([
+    UserModel.deleteMany({}),
+    ProductModel.deleteMany({}),
+    OrderModel.deleteMany({}),
+    NewsletterModel.deleteMany({}),
+    MessageModel.deleteMany({}),
+  ]);
 
   // Create 2 users
   console.log('Creating users...');
