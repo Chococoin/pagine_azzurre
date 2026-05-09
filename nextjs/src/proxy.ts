@@ -20,6 +20,9 @@ const protectedApiPrefixes = [
   '/api/uploads',
   // Task 12: /api/users/me and /api/users/me/export both need session.
   '/api/users/me',
+  // Admin-only API surface — also listed in adminPrefixes so non-admins
+  // who do have a session get bounced to '/' instead of leaking 401s.
+  '/api/admin',
 ];
 
 const adminPrefixes = ['/admin', '/dashboard', '/api/admin'];
