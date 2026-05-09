@@ -86,7 +86,7 @@ export const BrandAccent = styled.span`
 
 export const SearchWrapper = styled.div`
   flex: 1;
-  max-width: 32rem;
+  max-width: 40rem;
   display: none;
 
   @media (min-width: 768px) {
