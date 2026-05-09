@@ -10,6 +10,7 @@ const protectedPagePrefixes = [
   '/payment',
   '/placeorder',
   '/admin',
+  '/dashboard',
   '/productlist',
 ];
 
@@ -21,7 +22,7 @@ const protectedApiPrefixes = [
   '/api/users/me',
 ];
 
-const adminPrefixes = ['/admin', '/api/admin'];
+const adminPrefixes = ['/admin', '/dashboard', '/api/admin'];
 
 const sellerEditPattern = /^\/seller\/[^/]+\/edit(?:$|\/)/;
 const productEditPattern = /^\/product\/[^/]+\/edit(?:$|\/)/;
