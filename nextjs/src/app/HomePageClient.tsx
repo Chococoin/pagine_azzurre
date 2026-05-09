@@ -1,0 +1,153 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import {
+  LoadingBox,
+  MessageBox,
+  Product,
+  WelcomeBanner,
+  Pagination,
+  CookieConsent,
+} from '@/components/ui';
+import { getProducts } from '@/lib/api/products';
+import type { Product as ProductType } from '@/types';
+import {
+  PageContainer,
+  ContentContainer,
+  TextCenter,
+  PageTitle,
+  FlexWrap,
+  FilterButton,
+  LoadingContainer,
+  ErrorContainer,
+  EmptyContainer,
+  GridContainer,
+} from '@/lib/styles';
+
+type Section = 'offro' | 'cerco' | 'propongo' | 'avviso' | 'dono';
+
+export default function HomePageClient() {
+  const [section, setSection] = useState<Section>('offro');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [products, setProducts] = useState<ProductType[]>([]);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getProducts({ section, pageNumber: page });
+        setProducts(data.products || []);
+        setPages(data.pages || 1);
+        setPage(data.page || 1);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : 'Errore nel caricamento dei prodotti'
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [page, section]);
+
+  const sectionButtons: { value: Section; lines: [string, string] }[] = [
+    { value: 'offro', lines: ['Vendo', 'Offro'] },
+    { value: 'cerco', lines: ['Cerco', 'Mi serve'] },
+    { value: 'propongo', lines: ['Proposte', 'Partnership'] },
+    { value: 'avviso', lines: ['Avvisi', 'Eventi'] },
+    { value: 'dono', lines: ['Dono', 'Tempo'] },
+  ];
+
+  return (
+    <PageContainer>
+      {/* TEMP: hero image preview above the WelcomeBanner */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/logos/bannerblubig.jpg"
+        alt="Pagine Azzurre — del Progetto Val.Az.Co — spendi meno Euro, utilizza più VAL"
+        style={{
+          display: 'block',
+          width: '100%',
+          height: 'auto',
+          maxWidth: '80rem',
+          margin: '0 auto 1.5rem',
+        }}
+      />
+
+      {/* Welcome Banner */}
+      <WelcomeBanner />
+
+      {/* Cookie Consent */}
+      <CookieConsent />
+
+      <ContentContainer>
+        {/* Section Title */}
+        <TextCenter>
+          <PageTitle>Esposizione nuove attività</PageTitle>
+        </TextCenter>
+
+        {/* Section Filters */}
+        <FlexWrap>
+          {sectionButtons.map((btn) => (
+            <FilterButton
+              key={btn.value}
+              onClick={() => { setSection(btn.value); setPage(1); }}
+              $isActive={section === btn.value}
+              style={{
+                display: 'inline-flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                lineHeight: 1.15,
+                padding: '0.625rem 1.25rem',
+              }}
+            >
+              <span>{btn.lines[0]}</span>
+              <span>{btn.lines[1]}</span>
+            </FilterButton>
+          ))}
+        </FlexWrap>
+
+        {/* Loading State */}
+        {loading && (
+          <LoadingContainer>
+            <LoadingBox />
+          </LoadingContainer>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <ErrorContainer>
+            <MessageBox variant="danger">{error}</MessageBox>
+          </ErrorContainer>
+        )}
+
+        {/* Products Grid */}
+        {!loading && !error && (
+          <>
+            {products.length === 0 ? (
+              <EmptyContainer>
+                <MessageBox variant="info">
+                  Nessun prodotto trovato in questa sezione
+                </MessageBox>
+              </EmptyContainer>
+            ) : (
+              <GridContainer style={{ marginBottom: '3rem' }}>
+                {products.map((product) => (
+                  <Product key={product._id} product={product} />
+                ))}
+              </GridContainer>
+            )}
+
+            {/* Pagination */}
+            <Pagination currentPage={page} totalPages={pages} onPageChange={setPage} />
+          </>
+        )}
+      </ContentContainer>
+    </PageContainer>
+  );
+}

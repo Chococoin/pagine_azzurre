@@ -1,6 +1,9 @@
-@import "tailwindcss";
+/* ============================================
+   PAGINE AZZURRE - GLOBAL STYLES
+   Pure CSS reset and base styles (no Tailwind)
+   ============================================ */
 
-/* Reset and base styles matching original */
+/* Modern CSS Reset */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -8,22 +11,22 @@
 }
 
 html {
-  font-size: 62.5%; /* 16px x 62.5 = 10px = 1rem */
   box-sizing: border-box;
-  background-color: #203040;
   overflow-x: hidden;
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   margin: 0;
-  width: 100vw;
-  height: 100%;
-  font-size: 1.6rem;
-  font-family: Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: white;
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  background-color: #ffffff;
+  color: #111827;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
 }
 
 /* Links */
@@ -32,85 +35,52 @@ a {
   color: inherit;
 }
 
-a:hover {
-  color: #ff8000;
-}
-
 /* Lists */
-ul {
+ul, ol {
   padding: 0;
   margin: 0;
   list-style-type: none;
 }
 
-li {
-  margin-top: 1rem;
-}
-
-/* Headings */
-h1 {
-  font-size: 1.8rem;
-  padding: 1rem 0;
-}
-
-h2 {
-  font-size: 1.6rem;
-  padding: 1rem 0;
+/* Images */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 /* Buttons */
-input,
-select,
-textarea,
 button {
-  padding: 1rem;
-  border-radius: 0.5rem;
-  border: 0.2rem #a4a4a4 solid;
-  font-size: 1.2rem;
-  font-family: Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-input:hover,
-select:hover,
-textarea:hover,
-button:hover {
-  outline: 0.1rem solid #9c9b9b;
-}
-
-button {
-  background-color: #f8f8f8;
+  font-family: inherit;
   cursor: pointer;
 }
 
-/* Utility classes */
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
+/* Inputs */
+input, textarea, select {
+  font-family: inherit;
 }
 
-.row.center {
-  justify-content: center;
+/* Focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
-/* Marquee Animation for PreHeader */
-@keyframes marquee {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-.animate-marquee {
-  display: inline-block;
-  animation: marquee 30s linear infinite;
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
 }
 
-.animate-marquee:hover {
-  animation-play-state: paused;
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }

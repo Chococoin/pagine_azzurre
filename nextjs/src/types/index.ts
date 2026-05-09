@@ -2,6 +2,7 @@
 export interface User {
   _id: string;
   account: string;
+  accountKey?: string;
   username: string;
   name?: string;
   surname?: string;
@@ -17,6 +18,7 @@ export interface User {
   isAdmin: boolean;
   isSeller: boolean;
   hasAd: boolean;
+  verified?: boolean;
   verify?: {
     verified: boolean;
     trusted_link?: string;
@@ -60,6 +62,7 @@ export interface Product {
   state?: string;
   city?: string;
   municipality?: string;
+  referer?: string;
   seller: {
     _id: string;
     seller: {
@@ -105,15 +108,28 @@ export interface ShippingAddress {
   phone?: string;
 }
 
+/** Shape persisted in Mongo — differs from CartItem: image is an array
+ *  and the euro amount is stored as priceEuro, not price. */
+export interface OrderItem {
+  product: string;
+  name: string;
+  image: string[];
+  priceVal: number;
+  priceEuro?: number;
+  qty: number;
+  seller?: string;
+}
+
 export interface Order {
   _id: string;
-  orderItems: CartItem[];
+  orderItems: OrderItem[];
   shippingAddress: ShippingAddress;
   paymentMethod: string;
-  itemsPrice: number;
+  itemsPriceVal: number;
+  itemsPriceEuro?: number;
+  totalPriceVal: number;
+  totalPriceEuro?: number;
   shippingPrice: number;
-  taxPrice: number;
-  totalPrice: number;
   user: string | User;
   seller?: string;
   isPaid: boolean;
@@ -152,7 +168,7 @@ export interface RegisterData {
   phone?: string;
   cf?: string;
   sellername?: string;
-  referer?: string;
+  referer?: string[];
   newsletter?: boolean;
 }
 
