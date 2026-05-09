@@ -528,6 +528,7 @@ export default function ProductEditPage() {
             </FormGroup>
           )}
 
+          {(section === 'offro' || section === 'cerco' || section === 'dono') && (
           <FormGrid $twoCols>
             <FormGroup>
               <Label>Categoria *</Label>
@@ -593,6 +594,7 @@ export default function ProductEditPage() {
               </DecimalInputWrapper>
             </FormGroup>
           </FormGrid>
+          )}
 
           <FormGrid $twoCols>
             <FormGroup>
