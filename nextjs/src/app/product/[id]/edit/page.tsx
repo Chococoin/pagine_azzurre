@@ -469,6 +469,65 @@ export default function ProductEditPage() {
             />
           </FormGroup>
 
+          <FormGroup>
+            <Label>Sezione</Label>
+            <SectionButtonsRow>
+              {SECTION_BUTTONS.map((btn) => (
+                <FilterButton
+                  key={btn.value}
+                  type="button"
+                  onClick={() => setSection(btn.value)}
+                  $isActive={section === btn.value}
+                  style={{
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    lineHeight: 1.1,
+                    padding: '0.45rem 0.9rem',
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  <span>{btn.lines[0]}</span>
+                  <span>{btn.lines[1]}</span>
+                </FilterButton>
+              ))}
+            </SectionButtonsRow>
+          </FormGroup>
+
+          {(section === 'offro' || section === 'cerco') && (
+            <FormGroup
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: '1.5rem',
+              }}
+            >
+              <CheckboxLabel>
+                <Checkbox
+                  type="radio"
+                  name="isServiceRadio"
+                  checked={!isService}
+                  onChange={() => setIsService(false)}
+                />
+                <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
+                  Prodotto
+                </span>
+              </CheckboxLabel>
+              <CheckboxLabel>
+                <Checkbox
+                  type="radio"
+                  name="isServiceRadio"
+                  checked={isService}
+                  onChange={() => setIsService(true)}
+                />
+                <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
+                  Servizio
+                </span>
+              </CheckboxLabel>
+            </FormGroup>
+          )}
+
           <FormGrid $twoCols>
             <FormGroup>
               <Label>Categoria *</Label>
@@ -534,65 +593,6 @@ export default function ProductEditPage() {
               </DecimalInputWrapper>
             </FormGroup>
           </FormGrid>
-
-          <FormGroup>
-            <Label>Sezione</Label>
-            <SectionButtonsRow>
-              {SECTION_BUTTONS.map((btn) => (
-                <FilterButton
-                  key={btn.value}
-                  type="button"
-                  onClick={() => setSection(btn.value)}
-                  $isActive={section === btn.value}
-                  style={{
-                    display: 'inline-flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    lineHeight: 1.1,
-                    padding: '0.45rem 0.9rem',
-                    fontSize: '0.8rem',
-                  }}
-                >
-                  <span>{btn.lines[0]}</span>
-                  <span>{btn.lines[1]}</span>
-                </FilterButton>
-              ))}
-            </SectionButtonsRow>
-          </FormGroup>
-
-          {(section === 'offro' || section === 'cerco') && (
-            <FormGroup
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                justifyContent: 'center',
-                gap: '1.5rem',
-              }}
-            >
-              <CheckboxLabel>
-                <Checkbox
-                  type="radio"
-                  name="isServiceRadio"
-                  checked={!isService}
-                  onChange={() => setIsService(false)}
-                />
-                <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-                  Prodotto
-                </span>
-              </CheckboxLabel>
-              <CheckboxLabel>
-                <Checkbox
-                  type="radio"
-                  name="isServiceRadio"
-                  checked={isService}
-                  onChange={() => setIsService(true)}
-                />
-                <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#374151' }}>
-                  Servizio
-                </span>
-              </CheckboxLabel>
-            </FormGroup>
-          )}
 
           <FormGrid $twoCols>
             <FormGroup>
