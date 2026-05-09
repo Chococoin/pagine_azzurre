@@ -463,7 +463,7 @@ function SearchContent() {
                 <span>
                   Nessun prodotto trovato — prova a cercarlo{' '}
                   <a
-                    href="https://coseinutili.online/"
+                    href="https://coseinutili.online/annunci"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{ textDecoration: 'underline', fontWeight: 600 }}

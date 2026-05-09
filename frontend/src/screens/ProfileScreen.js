@@ -244,7 +244,7 @@ export default function ProfileScreen() {
     <div>
       <form className="form" onSubmit={submitHandler}>
         <div className="flash">
-          <h1 className="row center">Profilo dell'utente</h1>
+          <h1 className="row center">Profilo Personale</h1>
           {
               userInfo && !userInfo.verified && (
               <MessageBox variant="alert">

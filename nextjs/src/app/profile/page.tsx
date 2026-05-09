@@ -516,7 +516,7 @@ export default function ProfilePage() {
     <FormContainer>
       <Form onSubmit={submitHandler}>
         <FlashHeader>
-          <PageTitle>Profilo dell'utente</PageTitle>
+          <PageTitle>Profilo Personale</PageTitle>
           {user && !user.verify?.verified && (
             <MessageBox variant="warning">
               L'account deve essere ancora verificato:<br/>
