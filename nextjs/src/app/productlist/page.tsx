@@ -192,7 +192,7 @@ export default function ProductListPage() {
       } catch (e) {
         console.error('Session update failed:', e);
       }
-      router.push(`/product/${product._id}/edit`);
+      router.push(`/product/${product._id}/edit?new=1`);
     } catch {
       alert('Errore nella creazione del prodotto');
     } finally {

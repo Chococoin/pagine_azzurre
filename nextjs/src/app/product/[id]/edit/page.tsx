@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import styled from 'styled-components';
@@ -233,9 +233,15 @@ const SECTION_BUTTONS: { value: SectionValue; lines: [string, string] }[] = [
   { value: 'dono', lines: ['Dono', 'Tempo'] },
 ];
 
+// Default placeholder name pattern set by POST /api/products on draft creation.
+// Used to fall back to "Inserisci" mode when ?new=1 is missing (e.g. user
+// navigated away mid-creation and came back via the productlist edit button).
+const DEFAULT_NAME_RE = /^Annunci(ø|o) n° \d+$/;
+
 export default function ProductEditPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const productId = params.id as string;
   const { data: session, status } = useSession();
   const userInfo = session?.user;
@@ -442,7 +448,11 @@ export default function ProductEditPage() {
 
   return (
     <Container style={{ maxWidth: '42rem', padding: '2rem 1rem' }}>
-      <PageTitle>Inserisci / Modifica Annuncio</PageTitle>
+      <PageTitle>
+        {searchParams.get('new') === '1' || DEFAULT_NAME_RE.test(name)
+          ? 'Inserisci Annuncio'
+          : 'Modifica Annuncio'}
+      </PageTitle>
 
       <FormCard>
         {error && <MessageBox variant="danger">{error}</MessageBox>}
