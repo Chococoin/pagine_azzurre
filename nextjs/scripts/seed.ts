@@ -43,7 +43,7 @@ async function seed() {
     password: hashedPassword,
     isAdmin: true,
     isSeller: true,
-    hasAd: false,
+    hasAd: true,
     activity: 10,
     inscriptionBlock: 0,
     verify: {
@@ -53,7 +53,7 @@ async function seed() {
     seller: {
       name: 'Mario Shop',
       link: 'https://marioshop.com',
-      logo: '/images/mario-logo.png',
+      logo: '/logos/valazco-logo.png',
       description: 'La bottega di Mario - prodotti artigianali italiani',
       rating: 4.5,
       numReviews: 25,
@@ -81,6 +81,7 @@ async function seed() {
     },
     seller: {
       name: 'Giulia Creazioni',
+      logo: '/logos/banco-cittadini.jpg',
       description: 'Creazioni handmade con amore',
       rating: 4.8,
       numReviews: 42,
@@ -96,7 +97,7 @@ async function seed() {
     {
       name: 'Olio Extra Vergine di Oliva Biologico',
       seller: user1._id,
-      image: ['/images/products/olio-1.jpg', '/images/products/olio-2.jpg'],
+      image: ['/images/offro_prodotto.jpg'],
       brand: 'MARIO FARM',
       category: 'ALIMENTARI',
       description: 'Olio extra vergine di oliva biologico, spremuto a freddo. Prodotto nelle colline toscane con olive raccolte a mano.',
@@ -116,7 +117,7 @@ async function seed() {
     {
       name: 'Corso di Cucina Italiana Online',
       seller: user1._id,
-      image: ['/images/products/corso-cucina.jpg'],
+      image: ['/images/offro_servizio.jpg'],
       category: 'CORSI',
       description: 'Impara a cucinare i piatti della tradizione italiana con un corso online di 10 lezioni.',
       priceVal: 50,
@@ -134,7 +135,7 @@ async function seed() {
     {
       name: 'Borsa Artigianale in Pelle',
       seller: user2._id,
-      image: ['/images/products/borsa-1.jpg', '/images/products/borsa-2.jpg'],
+      image: ['/images/offro_prodotto.jpg'],
       brand: 'GIULIA CREAZIONI',
       category: 'MODA',
       description: 'Borsa realizzata a mano in vera pelle italiana. Ogni pezzo e unico.',
@@ -154,7 +155,7 @@ async function seed() {
     {
       name: 'Ceramica Decorata a Mano',
       seller: user2._id,
-      image: ['/images/products/ceramica.jpg'],
+      image: ['/images/offro_prodotto.jpg'],
       brand: 'GIULIA CREAZIONI',
       category: 'CASA',
       description: 'Set di 4 piatti decorati a mano con motivi tradizionali siciliani.',
@@ -173,7 +174,7 @@ async function seed() {
     {
       name: 'Cerco Collaboratore per E-commerce',
       seller: user1._id,
-      image: ['/images/products/lavoro.jpg'],
+      image: ['/images/cerco_servizio.jpg'],
       category: 'LAVORO',
       description: 'Cerco collaboratore esperto in e-commerce per gestione ordini e spedizioni.',
       priceVal: 0,
@@ -189,7 +190,7 @@ async function seed() {
     {
       name: 'Regalo Libri Usati',
       seller: user2._id,
-      image: ['/images/products/libri.jpg'],
+      image: ['/images/offro_prodotto.jpg'],
       category: 'LIBRI',
       description: 'Regalo collezione di libri usati in buone condizioni. Ritiro in zona Milano.',
       priceVal: 0,
