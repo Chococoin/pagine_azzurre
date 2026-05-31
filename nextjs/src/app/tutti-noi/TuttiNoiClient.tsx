@@ -371,13 +371,19 @@ export default function TuttiNoiClient() {
 
   return (
     <TuttiNoiContainer>
-      <Masthead>
+      <Masthead
+        style={{
+          marginBottom: titleRevealed ? '2.1rem' : '0',
+          transition: 'margin-bottom 0.7s ease',
+        }}
+      >
         <Title
           style={{
             opacity: titleRevealed ? 1 : 0,
             maxHeight: titleRevealed ? '20rem' : '0',
+            marginBottom: titleRevealed ? '0.85rem' : '0',
             overflow: 'hidden',
-            transition: 'opacity 0.7s ease, max-height 0.7s ease',
+            transition: 'opacity 0.7s ease, max-height 0.7s ease, margin-bottom 0.7s ease',
           }}
         >
           Tutti Noi che per l&apos;emancipazione scambiamo prodotti servizi e competenze. Dove c&apos;è scambio c&apos;è vita!
