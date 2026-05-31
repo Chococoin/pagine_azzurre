@@ -68,7 +68,9 @@ export async function uploadSellerLogo(file: File): Promise<string> {
       'Content-Type': 'multipart/form-data',
     },
   });
-  return response.data;
+  // The route returns { url, filename }; callers (and seller.logo) expect the
+  // bare URL string. The product-edit uploader reads `.url` too — mirror it.
+  return response.data.url;
 }
 
 // Get user's private key (accountKey)

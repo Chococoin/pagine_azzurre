@@ -92,7 +92,7 @@ const userSchema = new Schema<UserDocument>(
     referer: { type: [String], required: false },
     isAdmin: { type: Boolean, default: false, required: true },
     isSeller: { type: Boolean, default: true, required: true },
-    hasAd: { type: Boolean, default: false, required: true },
+    hasAd: { type: Boolean, default: true, required: true },
     activity: { type: Number, default: 0, required: false },
     inscriptionBlock: { type: Number, required: true, default: 0 },
     verify: {

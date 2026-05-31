@@ -108,7 +108,10 @@ export async function POST(request: NextRequest) {
       referer: referer || undefined,
       seller: { name: sellername },
       isSeller: true,
-      hasAd: false,
+      // New sign-ups are eligible from day one: hasAd defaults to true so the
+      // "metti un prodotto in vetrina" gate no longer blocks them (and they
+      // count toward the tutti-noi gallery once they add logo + description).
+      hasAd: true,
       verify: { trusted_link: trustedLink, verified: false },
     });
 
