@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import styled from 'styled-components';
@@ -340,6 +340,27 @@ export default function TuttiNoiClient() {
   const [sellers, setSellers] = useState<GallerySeller[] | null>(null);
   const [error, setError] = useState('');
 
+  // Easter egg: the masthead title is invisible until the cursor lingers on
+  // its (empty-looking) spot for 5 uninterrupted seconds. Leaving the spot
+  // cancels the countdown and hides it again.
+  const [titleRevealed, setTitleRevealed] = useState(false);
+  const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const startRevealCountdown = () => {
+    if (revealTimer.current) clearTimeout(revealTimer.current);
+    revealTimer.current = setTimeout(() => setTitleRevealed(true), 5000);
+  };
+  const cancelReveal = () => {
+    if (revealTimer.current) {
+      clearTimeout(revealTimer.current);
+      revealTimer.current = null;
+    }
+    setTitleRevealed(false);
+  };
+  useEffect(() => () => {
+    if (revealTimer.current) clearTimeout(revealTimer.current);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     getSellers()
@@ -359,7 +380,16 @@ export default function TuttiNoiClient() {
   return (
     <TuttiNoiContainer>
       <Masthead>
-        <Title>Tutti Noi che per l&apos;emancipazione scambiamo prodotti servizi e competenze. Dove c&apos;è scambio c&apos;è vita!</Title>
+        <Title
+          onMouseEnter={startRevealCountdown}
+          onMouseLeave={cancelReveal}
+          style={{
+            opacity: titleRevealed ? 1 : 0,
+            transition: 'opacity 0.7s ease',
+          }}
+        >
+          Tutti Noi che per l&apos;emancipazione scambiamo prodotti servizi e competenze. Dove c&apos;è scambio c&apos;è vita!
+        </Title>
       </Masthead>
 
       <JoinPrompt>
