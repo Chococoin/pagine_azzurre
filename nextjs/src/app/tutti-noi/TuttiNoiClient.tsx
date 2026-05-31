@@ -359,7 +359,7 @@ export default function TuttiNoiClient() {
   return (
     <TuttiNoiContainer>
       <Masthead>
-        <Title>Noi che per l&apos;emancipazione scambiamo prodotti servizi e competenze. Dove c&apos;è scambio c&apos;è vita.</Title>
+        <Title>Tutti Noi che per l&apos;emancipazione scambiamo prodotti servizi e competenze. Dove c&apos;è scambio c&apos;è vita!</Title>
       </Masthead>
 
       <JoinPrompt>
