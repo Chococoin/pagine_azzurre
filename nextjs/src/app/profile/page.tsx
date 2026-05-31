@@ -857,7 +857,7 @@ export default function ProfilePage() {
                     <FormGroup>
                       <Label>Descrizione dell&apos;attività</Label>
                       <TextArea
-                        placeholder="Descrizione dell'offerente"
+                        placeholder={'Descrizione dell’attività. Appena hai sia l’immagine/logo che questa descrizione, la pagina “Tutti Noi” sarà il tuo mini sito che ti mostrerà dentro la comunità.'}
                         maxLength={1500}
                         value={sellerDescription}
                         onChange={(e) => setSellerDescription(e.target.value)}
