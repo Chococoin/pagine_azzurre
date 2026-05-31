@@ -364,14 +364,13 @@ export default function TuttiNoiClient() {
 
       <JoinPrompt>
         <JoinPromptIntro>
-          Per essere presente qui in Tutti Noi compila nel tuo profilo
+          Per essere presente qui in ‘Tutti Noi’ compila nel tuo profilo dei dati personali:
         </JoinPromptIntro>
         <JoinPromptList>
-          <li>Dati personali</li>
           <li>Logo/immagine che ti rappresenta</li>
           <li>Descrizione della tua attività</li>
         </JoinPromptList>
-        <JoinPromptOutro>sarà il tuo mini sito</JoinPromptOutro>
+        <JoinPromptOutro>Questo sarà il tuo mini sito</JoinPromptOutro>
       </JoinPrompt>
 
       {error && <MessageBox variant="danger">{error}</MessageBox>}
