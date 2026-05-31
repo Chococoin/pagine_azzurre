@@ -385,7 +385,9 @@ export default function TuttiNoiClient() {
           onMouseLeave={cancelReveal}
           style={{
             opacity: titleRevealed ? 1 : 0,
-            transition: 'opacity 0.7s ease',
+            maxHeight: titleRevealed ? '20rem' : '1.5rem',
+            overflow: 'hidden',
+            transition: 'opacity 0.7s ease, max-height 0.7s ease',
           }}
         >
           Tutti Noi che per l&apos;emancipazione scambiamo prodotti servizi e competenze. Dove c&apos;è scambio c&apos;è vita!
