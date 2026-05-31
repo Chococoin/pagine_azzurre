@@ -88,31 +88,54 @@ const Subtitle = styled.p`
   }
 `;
 
-// Outlined eligibility badge — small-caps with tracked letterspacing,
-// the brand blue used as ink, never as fill.
-const RuleBadge = styled.div`
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
+// Eligibility prompt shown at the FOOT of the gallery (after the seller
+// images): tells visitors exactly what to fill in their profile to appear
+// here. Outlined brand-blue card, centered, multi-line.
+const JoinPrompt = styled.div`
+  margin: 2.75rem auto 0;
+  max-width: 34rem;
+  text-align: center;
   border: 1px solid #c7d2fe;
-  background: #ffffff;
-  color: #1e3a8a;
-  padding: 0.5rem 1rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  border-radius: 1rem;
+  background: #f8faff;
+  padding: 1.6rem 1.75rem;
 
-  & em {
-    color: #2563eb;
-    font-style: normal;
-    font-weight: 700;
+  @media (max-width: 540px) {
+    padding: 1.25rem 1rem;
+    margin-top: 2.1rem;
   }
 `;
 
-const CenterRow = styled.div`
-  text-align: center;
+const JoinPromptIntro = styled.p`
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #1e3a8a;
+`;
+
+const JoinPromptList = styled.ul`
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+
+  li {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #2563eb;
+  }
+`;
+
+const JoinPromptOutro = styled.p`
+  margin: 0;
+  font-size: 0.95rem;
+  font-style: italic;
+  color: #475569;
 `;
 
 const Gallery = styled.div`
@@ -380,11 +403,6 @@ export default function TuttiNoiClient() {
           </SecondaryLinkButton>
         </ButtonContainer>
       </ContentCard>
-        <CenterRow>
-          <RuleBadge>
-            PER ESSERE VISIBILI QUI INSERISCI UNA IMMAGINE CHE TI RAPPRESENTI E LA DESCRIZIONE NEL TUO PROFILO
-          </RuleBadge>
-        </CenterRow>
       </Masthead>
 
       {error && <MessageBox variant="danger">{error}</MessageBox>}
@@ -425,6 +443,18 @@ export default function TuttiNoiClient() {
           })}
         </Gallery>
       )}
+
+      <JoinPrompt>
+        <JoinPromptIntro>
+          Per essere presente qui in Tutti Noi compila nel tuo profilo
+        </JoinPromptIntro>
+        <JoinPromptList>
+          <li>Dati personali</li>
+          <li>Logo/immagine che ti rappresenta</li>
+          <li>Descrizione della tua attività</li>
+        </JoinPromptList>
+        <JoinPromptOutro>sarà il tuo mini sito</JoinPromptOutro>
+      </JoinPrompt>
     </TuttiNoiContainer>
   );
 }
