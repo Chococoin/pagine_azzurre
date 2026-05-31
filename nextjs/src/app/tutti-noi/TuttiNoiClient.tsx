@@ -36,6 +36,8 @@ const Masthead = styled.header`
   /* Comfortable invisible hover zone (the easter-egg "secret point") even
      when the title inside is collapsed to ~0. */
   min-height: 3rem;
+  /* TEMP: tint the secret hotspot red so it can be located. Remove later. */
+  background: rgba(255, 0, 0, 0.35);
 
   @media (max-width: 540px) {
     margin-bottom: 1.6rem;
@@ -463,7 +465,7 @@ export default function TuttiNoiClient() {
             ad una emancipazione non monetaria.
           </p>
           <p>
-            <strong>Chi Siamo:</strong> in ordine alfabetico le nostre
+            <strong>Chi Siamo*:</strong> in ordine alfabetico le nostre
             personali presentazioni con esposto il gruppo principale col
             quale collaboriamo, ciò che sappiamo fare e cosa mettiamo a
             disposizione al gruppo e a Tutti noi.
