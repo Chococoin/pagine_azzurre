@@ -33,6 +33,9 @@ const TuttiNoiContainer = styled(Container)`
 const Masthead = styled.header`
   text-align: center;
   margin-bottom: 2.1rem;
+  /* Comfortable invisible hover zone (the easter-egg "secret point") even
+     when the title inside is collapsed to ~0. */
+  min-height: 3rem;
 
   @media (max-width: 540px) {
     margin-bottom: 1.6rem;
@@ -379,13 +382,14 @@ export default function TuttiNoiClient() {
 
   return (
     <TuttiNoiContainer>
-      <Masthead>
+      <Masthead
+        onMouseEnter={startRevealCountdown}
+        onMouseLeave={cancelReveal}
+      >
         <Title
-          onMouseEnter={startRevealCountdown}
-          onMouseLeave={cancelReveal}
           style={{
             opacity: titleRevealed ? 1 : 0,
-            maxHeight: titleRevealed ? '20rem' : '1.5rem',
+            maxHeight: titleRevealed ? '20rem' : '0',
             overflow: 'hidden',
             transition: 'opacity 0.7s ease, max-height 0.7s ease',
           }}
