@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { Menu, ShoppingCart, ChevronDown, User, LogOut, Package, Activity, History, LayoutDashboard, Users } from 'lucide-react';
@@ -49,6 +49,27 @@ export function Header({ setSidebarIsOpen }: HeaderProps) {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showAdminDropdown, setShowAdminDropdown] = useState(false);
 
+  // Easter egg: hovering the "P" of "Pagine" for 5s reveals the hidden
+  // /tutti-noi masthead title. We just broadcast a window event; the
+  // TuttiNoiClient (if mounted) listens and toggles the title.
+  const secretTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const startSecret = () => {
+    if (secretTimer.current) clearTimeout(secretTimer.current);
+    secretTimer.current = setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('tuttinoi:reveal-title', { detail: true }));
+    }, 5000);
+  };
+  const endSecret = () => {
+    if (secretTimer.current) {
+      clearTimeout(secretTimer.current);
+      secretTimer.current = null;
+    }
+    window.dispatchEvent(new CustomEvent('tuttinoi:reveal-title', { detail: false }));
+  };
+  useEffect(() => () => {
+    if (secretTimer.current) clearTimeout(secretTimer.current);
+  }, []);
+
   // Map session to userInfo-like object for compatibility
   const userInfo = session?.user ? {
     username: session.user.name,
@@ -82,7 +103,9 @@ export function Header({ setSidebarIsOpen }: HeaderProps) {
               )}
 
               <BrandLink href="/">
-                <BrandText>Pagine</BrandText>
+                <BrandText>
+                  <span onMouseEnter={startSecret} onMouseLeave={endSecret}>P</span>agine
+                </BrandText>
                 <BrandAccent> Azzurre</BrandAccent>
               </BrandLink>
 

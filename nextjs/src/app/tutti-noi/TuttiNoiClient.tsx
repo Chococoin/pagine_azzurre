@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import styled from 'styled-components';
@@ -33,11 +33,6 @@ const TuttiNoiContainer = styled(Container)`
 const Masthead = styled.header`
   text-align: center;
   margin-bottom: 2.1rem;
-  /* Comfortable invisible hover zone (the easter-egg "secret point") even
-     when the title inside is collapsed to ~0. */
-  min-height: 3rem;
-  /* TEMP: tint the secret hotspot red so it can be located. Remove later. */
-  background: rgba(255, 0, 0, 0.35);
 
   @media (max-width: 540px) {
     margin-bottom: 1.6rem;
@@ -345,25 +340,17 @@ export default function TuttiNoiClient() {
   const [sellers, setSellers] = useState<GallerySeller[] | null>(null);
   const [error, setError] = useState('');
 
-  // Easter egg: the masthead title is invisible until the cursor lingers on
-  // its (empty-looking) spot for 5 uninterrupted seconds. Leaving the spot
-  // cancels the countdown and hides it again.
+  // Easter egg: the masthead title stays collapsed/invisible until the "P"
+  // of "Pagine" in the global header is hovered for 5s. The header broadcasts
+  // a window event; we just mirror it into state. Leaving the "P" hides it.
   const [titleRevealed, setTitleRevealed] = useState(false);
-  const revealTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const startRevealCountdown = () => {
-    if (revealTimer.current) clearTimeout(revealTimer.current);
-    revealTimer.current = setTimeout(() => setTitleRevealed(true), 5000);
-  };
-  const cancelReveal = () => {
-    if (revealTimer.current) {
-      clearTimeout(revealTimer.current);
-      revealTimer.current = null;
-    }
-    setTitleRevealed(false);
-  };
-  useEffect(() => () => {
-    if (revealTimer.current) clearTimeout(revealTimer.current);
+  useEffect(() => {
+    const onReveal = (e: Event) => {
+      setTitleRevealed((e as CustomEvent<boolean>).detail);
+    };
+    window.addEventListener('tuttinoi:reveal-title', onReveal);
+    return () => window.removeEventListener('tuttinoi:reveal-title', onReveal);
   }, []);
 
   useEffect(() => {
@@ -384,10 +371,7 @@ export default function TuttiNoiClient() {
 
   return (
     <TuttiNoiContainer>
-      <Masthead
-        onMouseEnter={startRevealCountdown}
-        onMouseLeave={cancelReveal}
-      >
+      <Masthead>
         <Title
           style={{
             opacity: titleRevealed ? 1 : 0,
