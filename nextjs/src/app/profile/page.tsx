@@ -818,10 +818,10 @@ export default function ProfilePage() {
                 {/* Seller Section */}
                 {user?.isSeller && (
                   <>
-                    <SectionTitle>Dati Offerente:</SectionTitle>
+                    <SectionTitle>Dati Personali</SectionTitle>
 
                     <FormGroup>
-                      <Label>Logo:</Label>
+                      <Label>Logo/immagine che ti rappresenta</Label>
                       {loadingUpload && <LoadingBox />}
                       {errorUpload && <MessageBox variant="danger">{errorUpload}</MessageBox>}
                       {sellerLogo && (
@@ -855,7 +855,7 @@ export default function ProfilePage() {
                     </FormGroup>
 
                     <FormGroup>
-                      <Label>Descrizione Offerente</Label>
+                      <Label>Descrizione dell&apos;attività</Label>
                       <TextArea
                         placeholder="Descrizione dell'offerente"
                         maxLength={1500}

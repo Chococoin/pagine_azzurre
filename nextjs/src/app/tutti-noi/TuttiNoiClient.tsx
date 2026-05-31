@@ -67,23 +67,24 @@ const Kicker = styled.div`
 // clean four-tier lockup.
 const Title = styled(PageTitle)`
   font-weight: 700;
-  font-size: clamp(2rem, 4.6vw, 3rem);
-  line-height: 1.1;
-  letter-spacing: -0.02em;
+  font-size: clamp(1rem, 1.8vw, 1.2rem);
+  line-height: 1.4;
+  letter-spacing: -0.01em;
   color: #0f172a;
-  margin: 0 0 0.5rem;
+  margin: 0 auto 0.85rem;
+  max-width: 36rem;
 `;
 
 const Subtitle = styled.p`
-  font-size: 1rem;
+  font-size: 0.7rem;
   font-weight: 400;
-  line-height: 1.55;
-  color: #475569;
+  line-height: 1.45;
+  color: #64748b;
   margin: 0 auto 1.05rem;
-  max-width: 32rem;
+  max-width: 24rem;
 
   @media (max-width: 540px) {
-    font-size: 0.95rem;
+    font-size: 0.66rem;
   }
 `;
 
@@ -203,41 +204,10 @@ const ContentCard = styled(CardBase)`
   }
 `;
 
-// Roman numerals in the gutter mark each section as soft anchors. The
-// grid collapses to a single column under 640px so the numeral sits
-// inline without crowding the heading.
-const SectionWrap = styled.section`
-  display: grid;
-  grid-template-columns: 4rem 1fr;
-  align-items: baseline;
-  gap: 0.75rem;
-
-  @media (max-width: 640px) {
-    grid-template-columns: 1fr;
-    gap: 0.35rem;
-  }
-`;
-
-const SectionNumber = styled.span`
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #2563eb;
-  letter-spacing: 0.08em;
-
-  @media (max-width: 640px) {
-    font-size: 0.78rem;
-  }
-`;
-
-const SectionContent = styled.div`
-  h2 {
-    font-size: 1.35rem;
-    font-weight: 700;
-    line-height: 1.25;
-    letter-spacing: -0.012em;
-    color: #0f172a;
-    margin: 0 0 0.75rem;
-  }
+const Prose = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.05rem;
 
   p {
     font-size: 1rem;
@@ -246,31 +216,48 @@ const SectionContent = styled.div`
     margin: 0;
   }
 
+  strong {
+    color: #0f172a;
+    font-weight: 700;
+    letter-spacing: -0.005em;
+  }
+
   ul {
     list-style: none;
     padding: 0;
-    margin: 1rem 0 0;
+    margin: 0;
     display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0.35rem 0.85rem;
 
     li {
-      position: relative;
-      padding-left: 1.25rem;
       color: #334155;
       line-height: 1.6;
-
-      &::before {
-        content: '·';
-        color: #2563eb;
-        position: absolute;
-        left: 0.1rem;
-        top: -0.05em;
-        font-weight: 700;
-        font-size: 1.5em;
-        line-height: 0.85;
-      }
+      display: inline-flex;
+      align-items: baseline;
     }
+
+    li + li::before {
+      content: '·';
+      color: #2563eb;
+      font-weight: 700;
+      font-size: 1.25em;
+      line-height: 0.85;
+      margin-right: 0.85rem;
+    }
+  }
+`;
+
+const Footnote = styled.p`
+  && {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: #64748b;
+    font-style: italic;
+    text-align: center;
+    margin-top: 0.35rem;
   }
 `;
 
@@ -279,6 +266,8 @@ const ButtonContainer = styled.div`
   border-top: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
   gap: 0.85rem;
 
   @media (min-width: 640px) {
@@ -347,14 +336,53 @@ export default function TuttiNoiClient() {
   return (
     <TuttiNoiContainer>
       <Masthead>
-        <Kicker>La Comunità</Kicker>
-        <Title>Le Pagine Azzurre Siamo Noi</Title>
-        <Subtitle>
-          La comunità di chi pubblica, condivide e si racconta.
-        </Subtitle>
+        <Title>Noi che per l&apos;emancipazione scambiamo prodotti servizi e competenze. Dove c&apos;è scambio c&apos;è vita.</Title>
+              <ContentCard>
+        <Prose>
+          <p>
+            <strong>Tutti Noi.</strong> Una comunità che crede nella
+            sovranità e nella consapevolezza economica etica solidale.
+            Favorisce ogni scambio di prodotti, servizi e competenze per una
+            nuova umanità.
+          </p>
+          <p>
+            <strong>La Nostra Missione:</strong> promuovere lo scambio
+            solidale di beni e servizi, utilizzando convenzioni di scambio
+            monetarie complementari e alternative come il VAL, finalizzate
+            ad una emancipazione non monetaria.
+          </p>
+          <p>
+            <strong>Chi Siamo:</strong> in ordine alfabetico le nostre
+            personali presentazioni con esposto il gruppo principale col
+            quale collaboriamo, ciò che sappiamo fare e cosa mettiamo a
+            disposizione al gruppo e a Tutti noi.
+          </p>
+          <ul>
+            <li>Cerca per Gruppo</li>
+            <li>Cerca per luogo</li>
+            <li>Cerca per professionalità*</li>
+          </ul>
+          <Footnote>
+            * Alcune funzionalità sono ancora in fase di sviluppo.
+          </Footnote>
+        </Prose>
+
+        <ButtonContainer>
+          <PrimaryLinkButton
+            href="https://valazco.it"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Visita valazco.it
+          </PrimaryLinkButton>
+          <SecondaryLinkButton href="/newsletter">
+            Iscriviti alla Newsletter
+          </SecondaryLinkButton>
+        </ButtonContainer>
+      </ContentCard>
         <CenterRow>
           <RuleBadge>
-            Pubblica un annuncio <em>·</em> aggiungi foto e descrizione
+            PER ESSERE VISIBILI QUI INSERISCI UNA IMMAGINE CHE TI RAPPRESENTI E LA DESCRIZIONE NEL TUO PROFILO
           </RuleBadge>
         </CenterRow>
       </Masthead>
@@ -397,75 +425,6 @@ export default function TuttiNoiClient() {
           })}
         </Gallery>
       )}
-
-      <ContentCard>
-        <SectionWrap>
-          <SectionNumber>I.</SectionNumber>
-          <SectionContent>
-            <h2>Chi Siamo</h2>
-            <p>
-              Pagine Azzurre è una piattaforma di scambio dove barattiamo e
-              scambiamo con meno Euro e più VAL. Siamo una comunità che
-              favorisce ogni scambio di prodotti, servizi e competenze
-              finalizzati alla emancipazione umana.
-            </p>
-          </SectionContent>
-        </SectionWrap>
-
-        <SectionWrap>
-          <SectionNumber>II.</SectionNumber>
-          <SectionContent>
-            <h2>La Nostra Missione</h2>
-            <p>
-              Promuoviamo uno scambio solidale di beni per vantaggi comuni.
-              Crediamo nella sovranità e nella consapevolezza economica,
-              utilizzando convenzioni monetarie alternative come i VAL.
-            </p>
-          </SectionContent>
-        </SectionWrap>
-
-        <SectionWrap>
-          <SectionNumber>III.</SectionNumber>
-          <SectionContent>
-            <h2>Il VAL</h2>
-            <p>
-              Il VAL è la nostra unità di scambio alternativa. Preferiamo
-              l&apos;utilizzo di:
-            </p>
-            <ul>
-              <li>VAL — Valorizzatore dell&apos;Azione Concordata</li>
-              <li>Crediti</li>
-              <li>G1</li>
-              <li>RISO</li>
-            </ul>
-          </SectionContent>
-        </SectionWrap>
-
-        <SectionWrap>
-          <SectionNumber>IV.</SectionNumber>
-          <SectionContent>
-            <h2>Val.Az.Co</h2>
-            <p>
-              Pagine Azzurre è un&apos;attività promossa e gestita dal{' '}
-              <strong>Banco dei Cittadini Volontari del Val.Az.Co</strong>{' '}
-              (VALorizzatore dell&apos;AZione COncordata).
-            </p>
-          </SectionContent>
-        </SectionWrap>
-
-        <ButtonContainer>
-          <PrimaryLinkButton
-            href="https://valazco.it"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Visita valazco.it
-          </PrimaryLinkButton>
-          <SecondaryLinkButton href="/newsletter">
-            Iscriviti alla Newsletter
-          </SecondaryLinkButton>
-        </ButtonContainer>
-      </ContentCard>
     </TuttiNoiContainer>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import { Menu, ShoppingCart, ChevronDown, User, LogOut, Package, Activity, History, LayoutDashboard, Users } from 'lucide-react';
 import { useCartStore } from '@/lib/store/cart';
@@ -42,6 +42,8 @@ interface HeaderProps {
 
 export function Header({ setSidebarIsOpen }: HeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const hideMobileSearch = pathname === '/tutti-noi';
   const { cartItems } = useCartStore();
   const { data: session } = useSession();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -252,10 +254,12 @@ export function Header({ setSidebarIsOpen }: HeaderProps) {
             </RightSection>
           </HeaderRow>
 
-          {/* Mobile search bar */}
-          <MobileSearchWrapper>
-            <SearchBox />
-          </MobileSearchWrapper>
+          {/* Mobile search bar — hidden on /tutti-noi */}
+          {!hideMobileSearch && (
+            <MobileSearchWrapper>
+              <SearchBox />
+            </MobileSearchWrapper>
+          )}
         </HeaderContent>
 
         <HeaderBorder />
