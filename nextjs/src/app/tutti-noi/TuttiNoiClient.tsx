@@ -92,7 +92,7 @@ const Subtitle = styled.p`
 // images): tells visitors exactly what to fill in their profile to appear
 // here. Outlined brand-blue card, centered, multi-line.
 const JoinPrompt = styled.div`
-  margin: 2.75rem auto 0;
+  margin: 0 auto 2.4rem;
   max-width: 34rem;
   text-align: center;
   border: 1px solid #c7d2fe;
@@ -102,7 +102,7 @@ const JoinPrompt = styled.div`
 
   @media (max-width: 540px) {
     padding: 1.25rem 1rem;
-    margin-top: 2.1rem;
+    margin-bottom: 1.8rem;
   }
 `;
 
@@ -360,7 +360,60 @@ export default function TuttiNoiClient() {
     <TuttiNoiContainer>
       <Masthead>
         <Title>Noi che per l&apos;emancipazione scambiamo prodotti servizi e competenze. Dove c&apos;è scambio c&apos;è vita.</Title>
-              <ContentCard>
+      </Masthead>
+
+      <JoinPrompt>
+        <JoinPromptIntro>
+          Per essere presente qui in Tutti Noi compila nel tuo profilo
+        </JoinPromptIntro>
+        <JoinPromptList>
+          <li>Dati personali</li>
+          <li>Logo/immagine che ti rappresenta</li>
+          <li>Descrizione della tua attività</li>
+        </JoinPromptList>
+        <JoinPromptOutro>sarà il tuo mini sito</JoinPromptOutro>
+      </JoinPrompt>
+
+      {error && <MessageBox variant="danger">{error}</MessageBox>}
+
+      {sellers === null && !error ? (
+        <LoadingBox />
+      ) : sellers && sellers.length === 0 ? (
+        <MessageBox>
+          Nessuno ha ancora completato la propria scheda. Sii il primo!
+        </MessageBox>
+      ) : (
+        <Gallery>
+          {(sellers ?? []).map((s) => {
+            const logo = s.seller?.logo as string | undefined;
+            const desc = s.seller?.description as string | undefined;
+            const name = s.seller?.name || s.name || s.username;
+            if (!logo || !desc) return null;
+            return (
+              <GalleryCard key={s._id}>
+                <GalleryLink href={`/seller/${s._id}`}>
+                  <GalleryImageWrap>
+                    <Image
+                      src={logo}
+                      alt={name}
+                      fill
+                      sizes="(max-width: 540px) 100vw, (max-width: 900px) 50vw, 33vw"
+                      style={{ objectFit: 'cover' }}
+                      unoptimized
+                    />
+                  </GalleryImageWrap>
+                  <GalleryBody>
+                    <GalleryName>{name}</GalleryName>
+                    <GalleryDescription>{desc}</GalleryDescription>
+                  </GalleryBody>
+                </GalleryLink>
+              </GalleryCard>
+            );
+          })}
+        </Gallery>
+      )}
+
+      <ContentCard>
         <Prose>
           <p>
             <strong>Tutti Noi.</strong> Una comunità che crede nella
@@ -403,58 +456,6 @@ export default function TuttiNoiClient() {
           </SecondaryLinkButton>
         </ButtonContainer>
       </ContentCard>
-      </Masthead>
-
-      {error && <MessageBox variant="danger">{error}</MessageBox>}
-
-      {sellers === null && !error ? (
-        <LoadingBox />
-      ) : sellers && sellers.length === 0 ? (
-        <MessageBox>
-          Nessuno ha ancora completato la propria scheda. Sii il primo!
-        </MessageBox>
-      ) : (
-        <Gallery>
-          {(sellers ?? []).map((s) => {
-            const logo = s.seller?.logo as string | undefined;
-            const desc = s.seller?.description as string | undefined;
-            const name = s.seller?.name || s.name || s.username;
-            if (!logo || !desc) return null;
-            return (
-              <GalleryCard key={s._id}>
-                <GalleryLink href={`/seller/${s._id}`}>
-                  <GalleryImageWrap>
-                    <Image
-                      src={logo}
-                      alt={name}
-                      fill
-                      sizes="(max-width: 540px) 100vw, (max-width: 900px) 50vw, 33vw"
-                      style={{ objectFit: 'cover' }}
-                      unoptimized
-                    />
-                  </GalleryImageWrap>
-                  <GalleryBody>
-                    <GalleryName>{name}</GalleryName>
-                    <GalleryDescription>{desc}</GalleryDescription>
-                  </GalleryBody>
-                </GalleryLink>
-              </GalleryCard>
-            );
-          })}
-        </Gallery>
-      )}
-
-      <JoinPrompt>
-        <JoinPromptIntro>
-          Per essere presente qui in Tutti Noi compila nel tuo profilo
-        </JoinPromptIntro>
-        <JoinPromptList>
-          <li>Dati personali</li>
-          <li>Logo/immagine che ti rappresenta</li>
-          <li>Descrizione della tua attività</li>
-        </JoinPromptList>
-        <JoinPromptOutro>sarà il tuo mini sito</JoinPromptOutro>
-      </JoinPrompt>
     </TuttiNoiContainer>
   );
 }
