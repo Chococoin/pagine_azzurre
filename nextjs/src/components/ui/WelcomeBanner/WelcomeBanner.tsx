@@ -30,7 +30,7 @@ const PAD_BIG = '0.665rem';                  // 0.5rem * 1.33
 const PAD_WIDE = '0.5rem 0.1rem';            // tight horizontal, normal vertical
 
 const logos = [
-  { src: '/logos/coseinUtili.jpeg', alt: 'Cose(in)utili — cambia l\'inutile in utile', href: 'https://coseinutili.online', padding: PAD_WIDE },
+  { src: '/logos/coseinUtili.jpeg', alt: 'Cose(in)utili — cambia l\'inutile in utile', href: 'https://coseinutili.online/annunci', padding: PAD_WIDE },
   { src: '/logos/valazco-banner.jpg', alt: 'Val.Az.Co — VALorizzatore AZioni COncordate', href: 'https://valazco.org/', padding: PAD_WIDE },
   { src: '/logos/banco-cittadini.jpg', alt: 'Il Banco dei Cittadini Volontari', href: 'https://valazco.org/', padding: PAD_WIDE },
   { src: '/logos/valazco-logo.png', alt: 'Valazco — app.valazco.org', href: 'https://app.valazco.org', padding: PAD_BIG },
