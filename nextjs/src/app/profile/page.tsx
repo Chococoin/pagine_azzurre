@@ -51,6 +51,33 @@ const SectionTitle = styled.h2`
   padding-bottom: 0.5rem;
 `;
 
+const ExperimentalSection = styled.section`
+  margin-top: 2.5rem;
+  padding: 1.5rem;
+  border: 2px dashed #f59e0b;
+  border-radius: 0.75rem;
+  background-color: #fffbeb;
+`;
+
+const ExperimentalBadge = styled.span`
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #92400e;
+  background-color: #fde68a;
+  border-radius: 9999px;
+  margin-bottom: 0.75rem;
+`;
+
+const ExperimentalIntro = styled.p`
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #78350f;
+`;
+
 const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
@@ -550,55 +577,6 @@ export default function ProfilePage() {
 
             {user && user.verify?.verified && (
               <>
-                {/* Valazco Section */}
-                <FormGroup>
-                  <Label>Valazco account</Label>
-                  <Input
-                    type="text"
-                    value={account}
-                    readOnly
-                    $readOnly
-                  />
-                </FormGroup>
-
-                <FormGroup>
-                  <Label>Saldo</Label>
-                  <Input
-                    type="text"
-                    value={`☯ ${balance}`}
-                    readOnly
-                    $readOnly
-                  />
-                </FormGroup>
-
-                {user?.account && (
-                  <QRCodeContainer>
-                    <QRCode value={user.account} level="H" size={128} />
-                  </QRCodeContainer>
-                )}
-
-                <SectionTitle>Integration with Metamask:</SectionTitle>
-                <FormGroup>
-                  <Label>Connetti Wallet</Label>
-                  <ConnectWallet />
-                </FormGroup>
-
-                <FormGroup>
-                  <Label>Secret (Private Key)</Label>
-                  {hideField ? (
-                    <RevealButton type="button" onClick={handleRevealPassphrase} disabled={loadingPassphrase}>
-                      {loadingPassphrase ? 'Caricamento...' : 'Reveal'}
-                    </RevealButton>
-                  ) : (
-                    <Input
-                      type="text"
-                      value={passphrase}
-                      readOnly
-                      $readOnly
-                    />
-                  )}
-                </FormGroup>
-
                 {/* Dati anagrafici */}
                 <SectionTitle>Dati anagrafici:</SectionTitle>
 
@@ -896,6 +874,64 @@ export default function ProfilePage() {
                 <SubmitButton type="submit" disabled={loadingUpdate}>
                   {loadingUpdate ? 'Aggiornamento...' : 'Aggiorna Profilo'}
                 </SubmitButton>
+
+                {/* Valazco wallet — experimental, parked at the bottom until it ships */}
+                <ExperimentalSection>
+                  <ExperimentalBadge>🧪 SPERIMENTALE</ExperimentalBadge>
+                  <SectionTitle style={{ marginTop: 0 }}>Portafoglio Valazco (Beta)</SectionTitle>
+                  <ExperimentalIntro>
+                    Questa sezione è in fase di test e non è ancora pienamente funzionante.
+                    Stiamo cercando beta tester: se vuoi aiutarci a provarla, scrivici!
+                  </ExperimentalIntro>
+
+                  <FormGroup>
+                    <Label>Valazco account</Label>
+                    <Input
+                      type="text"
+                      value={account}
+                      readOnly
+                      $readOnly
+                    />
+                  </FormGroup>
+
+                  <FormGroup>
+                    <Label>Saldo</Label>
+                    <Input
+                      type="text"
+                      value={`☯ ${balance}`}
+                      readOnly
+                      $readOnly
+                    />
+                  </FormGroup>
+
+                  {user?.account && (
+                    <QRCodeContainer>
+                      <QRCode value={user.account} level="H" size={128} />
+                    </QRCodeContainer>
+                  )}
+
+                  <SectionTitle>Integration with Metamask:</SectionTitle>
+                  <FormGroup>
+                    <Label>Connetti Wallet</Label>
+                    <ConnectWallet />
+                  </FormGroup>
+
+                  <FormGroup>
+                    <Label>Secret (Private Key)</Label>
+                    {hideField ? (
+                      <RevealButton type="button" onClick={handleRevealPassphrase} disabled={loadingPassphrase}>
+                        {loadingPassphrase ? 'Caricamento...' : 'Reveal'}
+                      </RevealButton>
+                    ) : (
+                      <Input
+                        type="text"
+                        value={passphrase}
+                        readOnly
+                        $readOnly
+                      />
+                    )}
+                  </FormGroup>
+                </ExperimentalSection>
               </>
             )}
           </>
