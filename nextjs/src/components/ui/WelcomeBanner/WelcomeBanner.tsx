@@ -34,7 +34,7 @@ const logos = [
   { src: '/logos/valazco-banner.jpg', alt: 'Val.Az.Co — VALorizzatore AZioni COncordate', href: 'https://valazco.org/', padding: PAD_WIDE },
   { src: '/logos/banco-cittadini.jpg', alt: 'Il Banco dei Cittadini Volontari', href: 'https://valazco.org/', padding: PAD_WIDE },
   { src: '/logos/valazco-logo.png', alt: 'Valazco — app.valazco.org', href: 'https://app.valazco.org', padding: PAD_BIG },
-  { src: '/logos/bannerblu.jpg', alt: 'Scopri di più su Pagine Azzurre', href: 'http://valazco.org/scopri-pagine-azzurre.html', padding: PAD_WIDE },
+  { src: '/logos/bannerblu.jpg', alt: 'Scopri di più su Pagine Azzurre', href: 'https://valazco.org/pagine-azzurre.html', padding: PAD_WIDE },
   { src: '/logos/comunitasolidali.png', alt: 'Comunita Solidali', href: '/collaborazione-in-attesa', padding: PAD_BIG },
 ];
 
