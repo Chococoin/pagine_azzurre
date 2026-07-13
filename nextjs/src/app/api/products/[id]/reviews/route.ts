@@ -4,6 +4,7 @@ import { Types } from 'mongoose';
 import connectDB from '@/lib/db/mongoose';
 import ProductModel from '@/lib/db/models/Product';
 import { authOptions } from '@/lib/auth/config';
+import { recomputeSellerRating } from '@/lib/services/sellerRating';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -73,6 +74,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     const updatedProduct = await product.save();
     const newReview = updatedProduct.reviews[updatedProduct.reviews.length - 1];
+
+    // Propagate the new review up to the seller's global scheda (average of
+    // per-ad ratings). Best-effort: a failure here must not fail the review.
+    try {
+      await recomputeSellerRating(product.seller);
+    } catch (aggErr) {
+      console.error('Error recomputing seller rating:', aggErr);
+    }
 
     return NextResponse.json(
       {

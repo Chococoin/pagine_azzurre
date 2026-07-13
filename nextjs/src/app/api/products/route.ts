@@ -17,6 +17,10 @@ export async function GET(request: NextRequest) {
     const name = searchParams.get('name') || '';
     const category = searchParams.get('category') || '';
     const seller = searchParams.get('seller') || '';
+    // Public seller pages set this so they still filter by seller but hide the
+    // seller's unfinished "Annunciø" drafts. Seller dashboards omit it and keep
+    // seeing their drafts so they can finish editing them.
+    const hideDrafts = searchParams.get('hideDrafts') === '1';
     const section = searchParams.get('section') || '';
     const order = searchParams.get('order') || '';
     const min = Number(searchParams.get('min')) || 0;
@@ -35,11 +39,14 @@ export async function GET(request: NextRequest) {
     // "Annunciø n° …" placeholder name. Seller dashboards (filter by seller)
     // must still show their own drafts so they can finish editing them.
     const trimmedQuery = cleanQuery.trim();
+    const hideDraftsFilter = { name: { $not: { $regex: 'Annunciø' } } };
     const textFilter = trimmedQuery
       ? { $text: { $search: trimmedQuery } }
       : seller
-        ? {}
-        : { name: { $not: { $regex: 'Annunciø' } } };
+        ? hideDrafts
+          ? hideDraftsFilter
+          : {}
+        : hideDraftsFilter;
 
     // Referer (group) filter: now stored directly on the product document
     // (backfilled from seller.referer[0]) so the filter is a plain field

@@ -8,6 +8,7 @@ import LoadingBox from '@/components/ui/LoadingBox';
 import MessageBox from '@/components/ui/MessageBox';
 import Product from '@/components/ui/Product';
 import Rating from '@/components/ui/Rating';
+import Pagination from '@/components/ui/Pagination';
 import {
   Container,
   SectionTitle,
@@ -73,26 +74,28 @@ interface SellerDetailClientProps {
 export default function SellerDetailClient({ sellerId }: SellerDetailClientProps) {
   const [seller, setSeller] = useState<User | null>(null);
   const [products, setProducts] = useState<ProductType[]>([]);
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
     fetchSellerData();
-  }, [sellerId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sellerId, page]);
 
   const fetchSellerData = async () => {
     try {
       setLoading(true);
+      // Filter by seller server-side and hide the seller's unfinished
+      // "Annunciø" drafts; paginate through the rest.
       const [sellerData, productsData] = await Promise.all([
         getUserProfile(sellerId),
-        getProducts({ pageSize: 100 }),
+        getProducts({ seller: sellerId, hideDrafts: true, pageNumber: page }),
       ]);
       setSeller(sellerData);
-      // Filter products by seller
-      const sellerProducts = productsData.products.filter(
-        (p) => p.seller._id === sellerId
-      );
-      setProducts(sellerProducts);
+      setProducts(productsData.products);
+      setPages(productsData.pages);
     } catch {
       setError('Errore nel caricamento del venditore');
     } finally {
@@ -139,11 +142,16 @@ export default function SellerDetailClient({ sellerId }: SellerDetailClientProps
           <MessageBox variant="info">Questo venditore non ha ancora prodotti</MessageBox>
         </EmptyContainer>
       ) : (
-        <ProductsGrid>
-          {products.map((product) => (
-            <Product key={product._id} product={product} />
-          ))}
-        </ProductsGrid>
+        <>
+          <ProductsGrid>
+            {products.map((product) => (
+              <Product key={product._id} product={product} />
+            ))}
+          </ProductsGrid>
+          {pages > 1 && (
+            <Pagination currentPage={page} totalPages={pages} onPageChange={setPage} />
+          )}
+        </>
       )}
     </Container>
   );

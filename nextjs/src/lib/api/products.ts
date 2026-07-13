@@ -14,6 +14,7 @@ export interface ProductFilters {
   order?: 'lowest' | 'highest' | 'toprated' | 'newest';
   pageNumber?: number;
   pageSize?: number;
+  hideDrafts?: boolean;
 }
 
 // Get all products with filters
@@ -32,6 +33,7 @@ export async function getProducts(filters?: ProductFilters): Promise<ProductList
   if (filters?.order) params.append('order', filters.order);
   if (filters?.pageNumber) params.append('pageNumber', filters.pageNumber.toString());
   if (filters?.pageSize) params.append('pageSize', filters.pageSize.toString());
+  if (filters?.hideDrafts) params.append('hideDrafts', '1');
 
   const response = await apiClient.get(`/products?${params.toString()}`);
   return response.data;

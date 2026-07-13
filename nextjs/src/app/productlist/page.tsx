@@ -302,7 +302,7 @@ export default function ProductListPage() {
           </TableCard>
 
           {pages > 1 && (
-            <Pagination currentPage={page} totalPages={pages} basePath="/productlist/page" />
+            <Pagination currentPage={page} totalPages={pages} onPageChange={setPage} />
           )}
         </>
       )}
