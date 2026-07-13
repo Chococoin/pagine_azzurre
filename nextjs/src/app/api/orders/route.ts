@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       sellerFilter = { seller: session.user.id };
     }
 
-    const orders = await OrderModel.find(sellerFilter).populate('user', 'name');
+    const orders = await OrderModel.find(sellerFilter).populate('user', 'username name');
 
     return NextResponse.json(orders);
   } catch (error) {

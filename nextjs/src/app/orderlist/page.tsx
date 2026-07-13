@@ -101,7 +101,7 @@ export default function OrderListPage() {
                       {order._id.slice(-8)}
                     </td>
                     <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#111827' }}>
-                      {typeof order.user === 'object' ? order.user.username : order.user?.slice(-6)}
+                      {typeof order.user === 'object' ? order.user.username || order.user.name : order.user?.slice(-6)}
                     </td>
                     <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
                       {new Date(order.createdAt).toLocaleDateString('it-IT')}
