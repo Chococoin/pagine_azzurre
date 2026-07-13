@@ -35,7 +35,7 @@ const logos = [
   { src: '/logos/banco-cittadini.jpg', alt: 'Il Banco dei Cittadini Volontari', href: 'https://valazco.org/', padding: PAD_WIDE },
   { src: '/logos/valazco-logo.png', alt: 'Valazco — app.valazco.org', href: 'https://app.valazco.org', padding: PAD_BIG },
   { src: '/logos/bannerblu.jpg', alt: 'Scopri di più su Pagine Azzurre', href: 'http://valazco.org/scopri-pagine-azzurre.html', padding: PAD_WIDE },
-  { src: '/logos/comunitasolidali.png', alt: 'Comunita Solidali', href: 'https://mercato.comunitasolidali.it', padding: PAD_BIG },
+  { src: '/logos/comunitasolidali.png', alt: 'Comunita Solidali', href: '/collaborazione-in-attesa', padding: PAD_BIG },
 ];
 
 export function WelcomeBanner() {
@@ -102,18 +102,21 @@ export function WelcomeBanner() {
               </LogoWrapper>
             );
 
-            return logo.href ? (
+            if (!logo.href) {
+              return <div key={index}>{logoImage}</div>;
+            }
+
+            // Internal routes stay in the same tab; external links open in a new one.
+            const isInternal = logo.href.startsWith('/');
+            return (
               <a
                 key={index}
                 href={logo.href}
-                target="_blank"
-                rel="noopener noreferrer"
+                {...(isInternal ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
                 style={{ textDecoration: 'none' }}
               >
                 {logoImage}
               </a>
-            ) : (
-              <div key={index}>{logoImage}</div>
             );
           })}
         </LogosContainer>
