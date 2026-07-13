@@ -882,3 +882,65 @@ export async function sendOrderMailingToOfferer(
     } : undefined
   );
 }
+
+// Direct message from the site admin to a user (Gestione Utenti). Subject
+// and body arrive already sanitized (tag-stripped, length-capped) from the
+// API route; newlines are preserved as <br> in the HTML version.
+export async function sendAdminMessageEmail(
+  to: string,
+  recipientName: string,
+  subject: string,
+  emailBody: string
+) {
+  const htmlBody = emailBody.replace(/\n/g, '<br>');
+
+  const content = `
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="
+        display: inline-block;
+        width: 64px;
+        height: 64px;
+        background-color: ${colors.primaryLight};
+        border-radius: 50%;
+        line-height: 64px;
+        font-size: 28px;
+      ">📩</div>
+    </div>
+
+    <h2 style="margin: 0 0 24px 0; color: ${colors.text}; font-size: 24px; font-weight: 700; text-align: center;">
+      ${subject}
+    </h2>
+
+    <p style="margin: 0 0 16px 0; color: ${colors.text}; font-size: 16px; line-height: 1.6;">
+      Ciao <strong>${recipientName}</strong>,
+    </p>
+
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin: 20px 0;">
+      <tr>
+        <td style="
+          background-color: ${colors.backgroundSecondary};
+          border-left: 4px solid ${colors.primary};
+          padding: 20px;
+          border-radius: 0 8px 8px 0;
+        ">
+          <p style="margin: 0 0 8px 0; color: ${colors.textMuted}; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+            Messaggio dallo staff di Pagine Azzurre
+          </p>
+          <p style="margin: 0; color: ${colors.text}; font-size: 15px; line-height: 1.6;">
+            ${htmlBody}
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
+
+  const html = createEmailTemplate(content, `Messaggio dallo staff di Pagine Azzurre: ${subject}`);
+  const text = `Ciao ${recipientName}, messaggio dallo staff di Pagine Azzurre.\n\n${emailBody}`;
+
+  await sendEmailWithProvider(
+    to,
+    `${subject} - Pagine Azzurre`,
+    html,
+    text
+  );
+}

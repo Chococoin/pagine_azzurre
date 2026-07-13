@@ -37,7 +37,12 @@ export default function UserListPage() {
     try {
       setLoading(true);
       const { data } = await apiClient.get('/users');
-      setUsers(data);
+      // Oldest signup first so the row number works as a stable "member #"
+      const sorted = [...data].sort(
+        (a: User, b: User) =>
+          new Date(a.createdAt ?? 0).getTime() - new Date(b.createdAt ?? 0).getTime()
+      );
+      setUsers(sorted);
     } catch {
       setError('Errore nel caricamento degli utenti');
     } finally {
@@ -71,27 +76,45 @@ export default function UserListPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
                 <tr>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>#</th>
                   <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>ID</th>
                   <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>Username</th>
                   <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>Email</th>
+                  <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>Iscrizione</th>
                   <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>Admin</th>
                   <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>Seller</th>
                   <th style={{ padding: '1rem 1.5rem', textAlign: 'left', fontSize: '0.875rem', fontWeight: '600', color: '#111827' }}>Azioni</th>
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
+                {users.map((user, index) => (
                   <tr
                     key={user._id}
                     style={{ borderBottom: '1px solid #f3f4f6', transition: 'background-color 0.15s' }}
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
+                    <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#111827', fontWeight: '500' }}>
+                      {index + 1}
+                    </td>
                     <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#6b7280', fontFamily: 'monospace' }}>
                       {user._id.slice(-8)}
                     </td>
                     <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#111827' }}>{user.username}</td>
-                    <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#6b7280' }}>{user.email}</td>
+                    <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem' }}>
+                      <Link
+                        href={`/user/${user._id}/email`}
+                        title={`Invia un'email a ${user.username}`}
+                        style={{ color: '#2563eb', textDecoration: 'none' }}
+                        onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                        onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                      >
+                        {user.email}
+                      </Link>
+                    </td>
+                    <td style={{ padding: '1rem 1.5rem', fontSize: '0.875rem', color: '#6b7280' }}>
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString('it-IT') : '—'}
+                    </td>
                     <td style={{ padding: '1rem 1.5rem' }}>
                       <span style={{
                         display: 'inline-flex',
